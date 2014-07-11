@@ -1,0 +1,10 @@
+<templates>
+    <t t-name="profiler.player">
+        <div  class="oe_topbar_item profile_player">
+            <img class="profile_enable" src="/web/static/src/img/icons/gtk-media-play.png"/>
+            <img class="profile_disable" src="/web/static/src/img/icons/gtk-media-pause.png"/>
+            <img class="profile_clear" src="/web/static/src/img/icons/gtk-media-play.png"/>
+            <img class="profile_dump" src="/web/static/src/img/icons/gtk-floppy.png"/>
+        </div>
+    </t>
+</templates>

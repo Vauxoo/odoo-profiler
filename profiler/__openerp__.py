@@ -39,9 +39,11 @@
     ],
     'js': [
         'static/src/js/boot.js',
+        'static/src/js/player.js',
         'static/src/js/profiler.js',
     ],
     'qweb': [
+        'static/src/xml/player.xml',
     ],
     'css': [
     ],
