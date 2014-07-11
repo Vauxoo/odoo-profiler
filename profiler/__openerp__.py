@@ -38,6 +38,7 @@
     'demo': [
     ],
     'js': [
+        'static/src/js/boot.js',
         'static/src/js/profiler.js',
     ],
     'qweb': [

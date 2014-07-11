@@ -1,7 +1,3 @@
-openerp.profiler = function(instance) {
-    openerp.profiler.profiler_enable(instance);
- };
-
 openerp.profiler.profiler_enable = function(instance) {
     instance.profiler.controllers = {
         'profiler.enable': 'enable',
