@@ -16,16 +16,19 @@ class ProfilerController(openerpweb.Controller):
     def enable(self, request):
         logger.info("Enabling")
         core.enabled = True
+        core.player_state = 'profiler_player_enabled'
 
     @openerpweb.jsonrequest
     def disable(self, request):
         logger.info("Disabling")
         core.disabled = True
+        core.player_state = 'profiler_player_disabled'
 
     @openerpweb.jsonrequest
     def clear(self, request):
         core.profile.clear()
         logger.info("Cleared stats")
+        core.player_state = 'profiler_player_clear'
 
     @openerpweb.httprequest
     def dump(self, request, token):
@@ -48,3 +51,11 @@ class ProfilerController(openerpweb.Controller):
                 ('Content-Disposition', 'attachment; filename="%s"' % filename),
                 ('Content-Type', 'application/octet-stream')
             ], cookies={'fileToken': int(token)})
+
+    @openerpweb.jsonrequest
+    def initial_state(self, request):
+        user = request.session.model('res.users')
+        return {
+            'has_player_group': user.has_group('profiler.group_profiler_player'),
+            'player_state': core.player_state,
+        }

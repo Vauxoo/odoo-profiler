@@ -31,11 +31,8 @@
     'website': 'http://anybox.fr',
     'depends': ['base', 'web'],
     'data': [
+        'security/group.xml',
         'view/menu.xml',
-    ],
-    'test': [
-    ],
-    'demo': [
     ],
     'js': [
         'static/src/js/boot.js',

@@ -8,18 +8,19 @@ openerp.profiler.player = function(instance) {
             "click .profiler_dump": "dump",
         },
         apply_class: function(css_class) {
-            this.$el.removeClass('profiler_player_enable');
-            this.$el.removeClass('profiler_player_disable');
+            console.log(css_class)
+            this.$el.removeClass('profiler_player_enabled');
+            this.$el.removeClass('profiler_player_disabled');
             this.$el.removeClass('profiler_player_clear');
             this.$el.addClass(css_class);
         },
         enable: function() {
             this.rpc('/web/profiler/enable', {});
-            this.apply_class('profiler_player_enable');
+            this.apply_class('profiler_player_enabled');
         },
         disable: function() {
             this.rpc('/web/profiler/disable', {});
-            this.apply_class('profiler_player_disable');
+            this.apply_class('profiler_player_disabled');
         },
         clear: function() {
             this.rpc('/web/profiler/clear', {});
@@ -36,9 +37,15 @@ openerp.profiler.player = function(instance) {
 
     instance.web.UserMenu.include({
         do_update: function () {
+            var self = this;
             this.update_promise.done(function () {
-                this.profiler_player = new instance.profiler.Player(this);
-                this.profiler_player.prependTo(instance.webclient.$('.oe_systray'));
+                self.rpc('/web/profiler/initial_state', {}).done(function(state) {
+                    if (state.has_player_group) {
+                        this.profiler_player = new instance.profiler.Player(this);
+                        this.profiler_player.prependTo(instance.webclient.$('.oe_systray'));
+                        this.profiler_player.apply_class(state.player_state);
+                    }
+                });
             });
             return this._super();
         },
