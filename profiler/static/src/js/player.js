@@ -2,25 +2,30 @@ openerp.profiler.player = function(instance) {
     instance.profiler.Player = instance.web.Widget.extend({
         template: 'profiler.player',
         events: {
-            "click .profile_enable": "enable",
-            "click .profile_disable": "disable",
-            "click .profile_clear": "clear",
-            "click .profile_dump": "dump",
+            "click .profiler_enable": "enable",
+            "click .profiler_disable": "disable",
+            "click .profiler_clear": "clear",
+            "click .profiler_dump": "dump",
+        },
+        apply_class: function(css_class) {
+            this.$el.removeClass('profiler_player_enable');
+            this.$el.removeClass('profiler_player_disable');
+            this.$el.removeClass('profiler_player_clear');
+            this.$el.addClass(css_class);
         },
         enable: function() {
-            console.log('enable')
             this.rpc('/web/profiler/enable', {});
+            this.apply_class('profiler_player_enable');
         },
         disable: function() {
-            console.log('disable')
             this.rpc('/web/profiler/disable', {});
+            this.apply_class('profiler_player_disable');
         },
         clear: function() {
-            console.log('clear')
             this.rpc('/web/profiler/clear', {});
+            this.apply_class('profiler_player_clear');
         },
         dump: function() {
-            console.log('dump')
             $.blockUI();
             this.session.get_file({
                 url: '/web/profiler/dump',

@@ -46,6 +46,7 @@
         'static/src/xml/player.xml',
     ],
     'css': [
+        'static/src/css/player.css',
     ],
     'installable': True,
     'application': False,
