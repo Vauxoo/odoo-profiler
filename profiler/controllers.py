@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from tempfile import mkstemp
 import openerp.addons.web.http as openerpweb
-from .. import core
+from . import core
 
 logger = logging.getLogger(__name__)
 
@@ -12,23 +12,31 @@ class ProfilerController(openerpweb.Controller):
 
     _cp_path = '/web/profiler'
 
+    player_state = 'profiler_player_clear'
+    """Indicate the state(css class) of the player:
+
+    * profiler_player_clear
+    * profiler_player_enabled
+    * profiler_player_disabled
+    """
+
     @openerpweb.jsonrequest
     def enable(self, request):
         logger.info("Enabling")
         core.enabled = True
-        core.player_state = 'profiler_player_enabled'
+        ProfilerController.player_state = 'profiler_player_enabled'
 
     @openerpweb.jsonrequest
     def disable(self, request):
         logger.info("Disabling")
-        core.disabled = True
-        core.player_state = 'profiler_player_disabled'
+        core.enabled = False
+        ProfilerController.player_state = 'profiler_player_disabled'
 
     @openerpweb.jsonrequest
     def clear(self, request):
         core.profile.clear()
         logger.info("Cleared stats")
-        core.player_state = 'profiler_player_clear'
+        ProfilerController.player_state = 'profiler_player_clear'
 
     @openerpweb.httprequest
     def dump(self, request, token):
@@ -57,5 +65,5 @@ class ProfilerController(openerpweb.Controller):
         user = request.session.model('res.users')
         return {
             'has_player_group': user.has_group('profiler.group_profiler_player'),
-            'player_state': core.player_state,
+            'player_state': ProfilerController.player_state,
         }

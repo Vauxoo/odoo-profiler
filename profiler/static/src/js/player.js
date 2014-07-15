@@ -1,4 +1,4 @@
-openerp.profiler.player = function(instance) {
+openerp.profiler = function(instance) {
     instance.profiler.Player = instance.web.Widget.extend({
         template: 'profiler.player',
         events: {
