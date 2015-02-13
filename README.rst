@@ -53,7 +53,16 @@ Remotely inspired from ZopeProfiler, although there is no online
 visualisation and there may never be one.
 
 .. |player| image:: https://bytebucket.org/anybox/odoo_profiler/raw/default/doc/static/player.png
+    :alt: Player to manage profiler
 .. |start_profiling| image:: https://bytebucket.org/anybox/odoo_profiler/raw/default/doc/static/start_profiling.png
+    :alt: Start profiling
+    :height: 35px
 .. |stop_profiling| image:: https://bytebucket.org/anybox/odoo_profiler/raw/default/doc/static/stop_profiling.png
+    :alt: Stop profiling
+    :height: 35px
 .. |dump_stats| image:: https://bytebucket.org/anybox/odoo_profiler/raw/default/doc/static/dump_stats.png
-.. |clear_stats| image:: https://bytebucket.org/anybox/odoo_profiler/raw/default/doc/static/clear_stats.pn
+    :alt: Download cprofile stats file
+    :height: 35px
+.. |clear_stats| image:: https://bytebucket.org/anybox/odoo_profiler/raw/default/doc/static/clear_stats.png
+    :alt: Clear and remove stats file
+    :height: 35px
