@@ -66,3 +66,6 @@ visualisation and there may never be one.
 .. |clear_stats| image:: https://bytebucket.org/anybox/odoo_profiler/raw/default/doc/static/clear_stats.png
     :alt: Clear and remove stats file
     :height: 35px
+
+
+Note: This is a fork from https://bitbucket.org/anybox/odoo_profiler
