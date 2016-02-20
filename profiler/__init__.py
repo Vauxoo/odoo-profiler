@@ -6,6 +6,10 @@ from .core import profiling
 from openerp.addons.web.http import JsonRequest
 from openerp.service.server import ThreadedServer
 import os
+import logging
+
+
+_logger = logging.getLogger(__name__)
 
 
 def patch_openerp():
@@ -17,6 +21,7 @@ def patch_openerp():
 
     For instance, OpenERP 7 spawns a new thread for each request.
     """
+    _logger.info('Patching openerp.addons.web.http.JsonRequest.dispatch')
     orig_dispatch = JsonRequest.dispatch
 
     def dispatch(*args, **kwargs):
@@ -27,6 +32,7 @@ def patch_openerp():
 
 def dump_stats():
     """Dump stats to standard file"""
+    _logger.info('Dump stats')
     core.profile.dump_stats(os.path.expanduser('~/.openerp_server.stats'))
 
 
@@ -34,6 +40,7 @@ def patch_orm_methods():
     """Modify OpenERP/Odoo ORM methods so that profile can record."""
     origin_make_wrapper = openerp.api.make_wrapper
 
+    _logger.info('Patching openerp.api.make_wrapper')
     def make_wrapper(*args, **kwargs):
         with profiling():
             return origin_make_wrapper(*args, **kwargs)
@@ -42,6 +49,7 @@ def patch_orm_methods():
 
 def create_profile():
     """Create the global, shared profile object."""
+    _logger.info('Create core.profile')
     core.profile = Profile()
 
 
@@ -49,6 +57,7 @@ def patch_stop():
     """When the server is stopped then save the result of cProfile stats"""
     origin_stop = ThreadedServer.stop
 
+    _logger.info('Patching openerp.service.server.ThreadedServer.stop')
     def stop(*args, **kwargs):
         if openerp.tools.config['test_enable']:
             dump_stats()
@@ -57,10 +66,12 @@ def patch_stop():
 
 
 def post_load():
+    _logger.info('Post load')
     create_profile()
     patch_openerp()
     if openerp.tools.config['test_enable']:
         # Enable profile in test mode for orm methods.
+        _logger.info('Enabling core and apply patch')
         core.enabled = True
         patch_orm_methods()
         patch_stop()
