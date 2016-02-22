@@ -37,14 +37,29 @@ def dump_stats():
 
 
 def patch_orm_methods():
-    """Modify OpenERP/Odoo ORM methods so that profile can record."""
-    origin_make_wrapper = openerp.api.make_wrapper
+    """Show a command to modify OpenERP/Odoo ORM methods
+    so that profile can record."""
 
-    _logger.info('Patching openerp.api.make_wrapper')
-    def make_wrapper(*args, **kwargs):
-        with profiling():
-            return origin_make_wrapper(*args, **kwargs)
-    openerp.api.make_wrapper = make_wrapper
+    # TODO: Apply a monkey patch of nested method.
+    fname_to_patch = os.path.join(os.path.dirname(openerp.api.__file__),
+                                  "api.py")
+    odoo_is_patched = 'with profiling():' in open(fname_to_patch).read()
+    if odoo_is_patched:
+        _logger.info('The method openerp.api.make_wrapper is patching!')
+        return True
+    patch_cmds = [
+        'sed -i "s/return new_api/with profiling(): return new_api/g" ' +
+        fname_to_patch,
+        'sed -i "s/return old_api/with profiling(): return old_api/g" ' +
+        fname_to_patch,
+        'sed -i "/# avoid hasattr/a ' + '\\ \\ \\ \\ \\ \\ \\ \\ '
+        'from openerp.addons.profiler import profiling" ' +
+        fname_to_patch,
+    ]
+    _logger.warn('You will need apply a manual patch to odoo.api.make_wrapper'
+                 ' to record all ORM methods. Please execute follow commands:'
+                 'Execute follow commands:\n' + '\n'.join(patch_cmds))
+    return False
 
 
 def create_profile():
@@ -58,6 +73,7 @@ def patch_stop():
     origin_stop = ThreadedServer.stop
 
     _logger.info('Patching openerp.service.server.ThreadedServer.stop')
+
     def stop(*args, **kwargs):
         if openerp.tools.config['test_enable']:
             dump_stats()
