@@ -1,13 +1,15 @@
-from . import controllers  # noqa
-import openerp
+# coding: utf-8
+import logging
+import os
 from cProfile import Profile
-from . import core
-from .core import profiling
+
+import openerp
 from openerp.addons.web.http import JsonRequest
 from openerp.service.server import ThreadedServer
-import os
-import logging
 
+from . import controllers  # noqa
+from . import core
+from .core import profiling
 
 _logger = logging.getLogger(__name__)
 
