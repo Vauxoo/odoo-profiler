@@ -1,8 +1,10 @@
-import os
 import logging
+import os
 from datetime import datetime
 from tempfile import mkstemp
+
 import openerp.addons.web.http as openerpweb
+
 from . import core
 
 logger = logging.getLogger(__name__)
