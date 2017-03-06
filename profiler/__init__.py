@@ -1,18 +1,20 @@
-from . import controllers  # noqa
-import openerp
+# coding: utf-8
+import logging
+import os
 from cProfile import Profile
+
+import odoo
+from odoo.http import JsonRequest
+from odoo.service.server import ThreadedServer
+
+from . import controllers  # noqa
 from . import core
 from .core import profiling
-from openerp.addons.web.http import JsonRequest
-from openerp.service.server import ThreadedServer
-import os
-import logging
-
 
 _logger = logging.getLogger(__name__)
 
 
-def patch_openerp():
+def patch_odoo():
     """Modify OpenERP/Odoo entry points so that profile can record.
 
     Odoo is a multi-threaded program. Therefore, the :data:`profile` object
@@ -21,7 +23,7 @@ def patch_openerp():
 
     For instance, OpenERP 7 spawns a new thread for each request.
     """
-    _logger.info('Patching openerp.addons.web.http.JsonRequest.dispatch')
+    _logger.info('Patching odoo.addons.web.http.JsonRequest.dispatch')
     orig_dispatch = JsonRequest.dispatch
 
     def dispatch(*args, **kwargs):
@@ -41,11 +43,11 @@ def patch_orm_methods():
     so that profile can record."""
 
     # TODO: Apply a monkey patch of nested method.
-    fname_to_patch = os.path.join(os.path.dirname(openerp.api.__file__),
+    fname_to_patch = os.path.join(os.path.dirname(odoo.api.__file__),
                                   "api.py")
     odoo_is_patched = 'with profiling():' in open(fname_to_patch).read()
     if odoo_is_patched:
-        _logger.info('The method openerp.api.make_wrapper is patching!')
+        _logger.info('The method odoo.api.make_wrapper is patching!')
         return True
     patch_cmds = [
         'sed -i "s/return new_api/with profiling(): return new_api/g" ' +
@@ -53,7 +55,7 @@ def patch_orm_methods():
         'sed -i "s/return old_api/with profiling(): return old_api/g" ' +
         fname_to_patch,
         'sed -i "/# avoid hasattr/a ' + '\\ \\ \\ \\ \\ \\ \\ \\ '
-        'from openerp.addons.profiler import profiling" ' +
+        'from odoo.addons.profiler import profiling" ' +
         fname_to_patch,
     ]
     _logger.warn('You will need apply a manual patch to odoo.api.make_wrapper'
@@ -72,10 +74,10 @@ def patch_stop():
     """When the server is stopped then save the result of cProfile stats"""
     origin_stop = ThreadedServer.stop
 
-    _logger.info('Patching openerp.service.server.ThreadedServer.stop')
+    _logger.info('Patching odoo.service.server.ThreadedServer.stop')
 
     def stop(*args, **kwargs):
-        if openerp.tools.config['test_enable']:
+        if odoo.tools.config['test_enable']:
             dump_stats()
         return origin_stop(*args, **kwargs)
     ThreadedServer.stop = stop
@@ -84,8 +86,8 @@ def patch_stop():
 def post_load():
     _logger.info('Post load')
     create_profile()
-    patch_openerp()
-    if openerp.tools.config['test_enable']:
+    patch_odoo()
+    if odoo.tools.config['test_enable']:
         # Enable profile in test mode for orm methods.
         _logger.info('Enabling core and apply patch')
         core.enabled = True
