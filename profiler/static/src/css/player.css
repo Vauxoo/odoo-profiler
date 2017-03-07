@@ -1,21 +1,21 @@
 .o_web_client .oe_topbar_item.profiler_player i {
     cursor: pointer;
 }
-.o_web_client .oe_topbar_item.profiler_player.profiler_player_enabled a i.profiler_enable {
+.o_web_client .oe_topbar_item.profiler_player.profiler_player_enabled a.profiler_enable {
     display: None;
 }
-.o_web_client .oe_topbar_item.profiler_player.profiler_player_enabled a i.profiler_dump {
+.o_web_client .oe_topbar_item.profiler_player.profiler_player_enabled a.profiler_dump {
     display: None;
 }
-.o_web_client .oe_topbar_item.profiler_player.profiler_player_disabled a i.profiler_disable {
+.o_web_client .oe_topbar_item.profiler_player.profiler_player_disabled a.profiler_disable {
     display: None;
 }
-.o_web_client .oe_topbar_item.profiler_player.profiler_player_clear a i.profiler_disable {
+.o_web_client .oe_topbar_item.profiler_player.profiler_player_clear a.profiler_disable {
     display: None;
 }
-.o_web_client .oe_topbar_item.profiler_player.profiler_player_clear a i.profiler_clear {
+.o_web_client .oe_topbar_item.profiler_player.profiler_player_clear a.profiler_clear {
     display: None;
 }
-.o_web_client .oe_topbar_item.profiler_player.profiler_player_clear a i.profiler_dump {
+.o_web_client .oe_topbar_item.profiler_player.profiler_player_clear a.profiler_dump {
     display: None;
 }

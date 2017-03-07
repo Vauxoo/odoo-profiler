@@ -1,23 +1,25 @@
 <templates>
     <t t-name="profiler.player">
         <li  class="oe_topbar_item profiler_player">
-            <a href="#">
-                <i class="profiler_enable fa fa-play" title="Start profiling"/>
+            <a href="#" class="profiler_enable">
+                <i class="fa fa-play" title="Start profiling"/>
             </a>
         </li>
         <li  class="oe_topbar_item profiler_player">
-            <a href="#">
-                 <i class="profiler_disable fa fa-pause" title="Stop profiling"/>
+            <a href="#" class="profiler_disable">
+                 <!-- <i class="fa fa-pause" title="Stop profiling"/> -->
+                 <i class="fa fa-stop" title="Stop profiling"/>
             </a>
         </li>
         <li  class="oe_topbar_item profiler_player">
-            <a href="#">
-                 <i class="profiler_clear fa fa-stop" title="Clear profiling"/>
+            <a href="#" class="profiler_clear">
+                 <!-- <i class="fa fa-stop" title="Clear profiling"/> -->
+                 <i class="fa fa-refresh" title="Clear profiling"/>
             </a>
         </li>
         <li  class="oe_topbar_item profiler_player">
-            <a href="#">
-                <i class="profiler_dump fa fa-floppy-o" title="Download stats"/>
+            <a href="#" class="profiler_dump">
+                <i class="fa fa-floppy-o" title="Download stats"/>
             </a>
         </li>
     </t>
