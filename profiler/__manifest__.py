@@ -30,6 +30,7 @@
     'website': 'http://anybox.fr',
     'depends': ['web'],
     'data': [
+        'data/prfiler_excluding.xml',
         'security/group.xml',
         'views/profiler.xml'
     ],

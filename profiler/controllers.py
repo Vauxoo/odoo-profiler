@@ -2,10 +2,11 @@
 import logging
 import os
 from datetime import datetime
-from tempfile import mkstemp
+import tempfile
+from pstats_print2list import get_pstats_print2list, get_field_list
 
-from odoo import http
-from odoo.http import request
+from odoo import http, tools
+from odoo.http import request, content_disposition
 
 from . import core
 
@@ -51,21 +52,31 @@ class ProfilerController(http.Controller):
         Uses a temporary file, because apparently there's no API to
         dump stats in a stream directly.
         """
-        handle, path = mkstemp(prefix='profiling')
-        core.profile.dump_stats(path)
-        stream = os.fdopen(handle)
-        os.unlink(path)  # TODO POSIX only ?
-        stream.seek(0)
-        filename = 'openerp_%s.stats' % datetime.now().isoformat()
-        # can't close the stream even in a context manager: it'll be needed
-        # after the return from this method, we'll let Python's GC do its job
-        return request.make_response(
-            stream,
-            headers=[
-                ('Content-Disposition',
-                 'attachment; filename="%s"' % filename),
-                ('Content-Type', 'application/octet-stream')
-            ], cookies={'fileToken': token})
+        with tools.osutil.tempdir() as dump_dir:
+            ts = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
+            filename = 'openerp_%s' % ts
+            stats_path = os.path.join(dump_dir, '%s.stats' % filename)
+            core.profile.dump_stats(stats_path)
+            pstats_list = get_pstats_print2list(
+                stats_path, sort='cumulative', limit=45,
+                exclude_fnames=[
+                    '/.repo_requirements', '/root/odoo-10.0', '/usr/', '>'])
+            pstats = self.print_pstats_list(pstats_list)
+            handle = tempfile.mkstemp(
+                suffix='.txt', prefix=filename, dir=dump_dir)[0]
+            res_file = os.fdopen(handle, "w+")
+            res_file.write(pstats)
+            res_file.close()
+            t_zip = tempfile.TemporaryFile()
+            tools.osutil.zip_dir(dump_dir, t_zip, include_dir=False)
+            t_zip.seek(0)
+            headers = [
+                ('Content-Type', 'application/octet-stream; charset=binary'),
+                ('Content-Disposition', content_disposition(
+                    '%s.zip' % filename))]
+            _logger.info('Download Profiler zip: %s', t_zip.name)
+            return request.make_response(
+                t_zip, headers=headers, cookies={'fileToken': token})
 
     @http.route(['/web/profiler/initial_state'], type='json', auth="user")
     def initial_state(self, **post):
@@ -75,3 +86,15 @@ class ProfilerController(http.Controller):
                 'profiler.group_profiler_player'),
             'player_state': ProfilerController.player_state,
         }
+
+    def print_pstats_list(self, pstats, pformat=None):
+        if not pstats:
+            return ''
+        if pformat is None:
+            pformat = "{ncalls:10s} {tottime:10s} {tt_percall:10s} " + \
+                "{cumtime:10s} {ct_percall:10s} {file}:{lineno} ({method})"
+        res = ''
+        for pstat_line in [
+                dict(zip(get_field_list(), get_field_list()))] + pstats:
+            res += '%s\n' % pformat.format(**pstat_line)
+        return res
