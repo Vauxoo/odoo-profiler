@@ -57,9 +57,9 @@ class ProfilerController(http.Controller):
         Uses a temporary file, because apparently there's no API to
         dump stats in a stream directly.
         """
-        exclude_fname = request.env.ref(
+        exclude_fname = [os.path.expanduser(path) for path in request.env.ref(
             'profiler.default_exclude_fnames_pstas',
-            raise_if_not_found=False).value.split(',')
+            raise_if_not_found=False).value.split(',')]
         # exclude_query = request.env.ref(
         #     'profiler.default_exclude_query_pgbader',
         #     raise_if_not_found=False).value.split(',')
