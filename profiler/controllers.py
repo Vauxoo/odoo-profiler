@@ -5,9 +5,11 @@ import os
 import subprocess
 import shutil
 import tempfile
+import sys
 
 from datetime import datetime
-from pstats_print2list import get_pstats_print2list, get_field_list
+from cStringIO import StringIO
+from pstats_print2list import get_pstats_print2list, print_pstats_list
 
 from odoo.tools.misc import find_in_path
 from odoo import http, tools
@@ -16,6 +18,18 @@ from odoo.http import request, content_disposition
 from . import core
 
 _logger = logging.getLogger(__name__)
+
+
+class Capturing(list):
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        sys.stdout = self._stdout
 
 
 class ProfilerController(http.Controller):
@@ -71,11 +85,13 @@ class ProfilerController(http.Controller):
             pstats_list = get_pstats_print2list(
                 stats_path, sort='cumulative', limit=45,
                 exclude_fnames=exclude_fname)
-            pstats = self.print_pstats_list(pstats_list)
+            with Capturing() as output:
+                print_pstats_list(pstats_list)
             handle = tempfile.mkstemp(
                 suffix='.txt', prefix=filename, dir=dump_dir)[0]
-            res_file = os.fdopen(handle, "w+")
-            res_file.write(pstats)
+            res_file = os.fdopen(handle, "a")
+            for line in output:
+                res_file.write('%s\n' % line)
             res_file.close()
             # PG_BADGER
             self.dump_pgbadger(dump_dir, 'pgbadger_output.txt')
@@ -98,18 +114,6 @@ class ProfilerController(http.Controller):
                 'profiler.group_profiler_player'),
             'player_state': ProfilerController.player_state,
         }
-
-    def print_pstats_list(self, pstats, pformat=None):
-        if not pstats:
-            return ''
-        if pformat is None:
-            pformat = "{ncalls:10s} {tottime:10s} {tt_percall:10s} " + \
-                "{cumtime:10s} {ct_percall:10s} {file}:{lineno} ({method})"
-        res = ''
-        for pstat_line in [
-                dict(zip(get_field_list(), get_field_list()))] + pstats:
-            res += '%s\n' % pformat.format(**pstat_line)
-        return res
 
     def dump_pgbadger(self, dir_dump, output):
         pgbadger = find_in_path("pgbadger")
