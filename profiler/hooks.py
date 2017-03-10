@@ -14,13 +14,13 @@ _logger = logging.getLogger(__name__)
 
 
 def patch_odoo():
-    """Modify OpenERP/Odoo entry points so that profile can record.
+    """Modify Odoo entry points so that profile can record.
 
     Odoo is a multi-threaded program. Therefore, the :data:`profile` object
     needs to be enabled/disabled each in each thread to capture all the
     execution.
 
-    For instance, OpenERP 7 spawns a new thread for each request.
+    For instance, Odoo spawns a new thread for each request.
     """
     _logger.info('Patching odoo.http.WebRequest._call_function')
     webreq_f_origin = WebRequest._call_function

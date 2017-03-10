@@ -37,6 +37,8 @@ class ProfilerController(http.Controller):
     _cp_path = '/web/profiler'
 
     player_state = 'profiler_player_clear'
+    begin_date = ''
+    end_date = ''
     """Indicate the state(css class) of the player:
 
     * profiler_player_clear
@@ -48,12 +50,16 @@ class ProfilerController(http.Controller):
     def enable(self):
         _logger.info("Enabling")
         core.enabled = True
+        ProfilerController.begin_date = datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_enabled'
 
     @http.route(['/web/profiler/disable'], type='json', auth="user")
     def disable(self, **post):
         _logger.info("Disabling")
         core.enabled = False
+        ProfilerController.end_date = datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_disabled'
 
     @http.route(['/web/profiler/clear'], type='json', auth="user")
@@ -62,6 +68,8 @@ class ProfilerController(http.Controller):
         core.profile.clear()
         _logger.info("Cleared stats")
         ProfilerController.player_state = 'profiler_player_clear'
+        ProfilerController.end_date = ''
+        ProfilerController.begin_date = ''
 
     # @http.httprequest
     @http.route(['/web/profiler/dump'], type='http', auth="user")
@@ -71,12 +79,7 @@ class ProfilerController(http.Controller):
         Uses a temporary file, because apparently there's no API to
         dump stats in a stream directly.
         """
-        exclude_fname = [os.path.expanduser(path) for path in request.env.ref(
-            'profiler.default_exclude_fnames_pstas',
-            raise_if_not_found=False).value.split(',')]
-        # exclude_query = request.env.ref(
-        #     'profiler.default_exclude_query_pgbader',
-        #     raise_if_not_found=False).value.split(',')
+        exclude_fname = self.get_exclude_fname()
         with tools.osutil.tempdir() as dump_dir:
             ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             filename = 'openerp_%s' % ts
@@ -132,13 +135,36 @@ class ProfilerController(http.Controller):
                     raise
         shutil.copyfile(log_path, logfilename)
         _logger.info("Generating PG Badger report.")
+        exclude_query = self.get_exclude_query()
         command = (
-            '%s -f stderr -T "%s" -o %s --top 40 --sample 2 '
+            '%s -f stderr -T "%s" -o %s -b "%s" -e "%s" --top 40 --sample 2 '
             '--disable-type --disable-error --disable-hourly '
             '--disable-session --disable-connection --disable-temporary '
-            '--quiet %s' % (
-                pgbadger, 'Odoo-Profiler', filename, log_path))
+            '--quiet %s %s' % (
+                pgbadger, 'Odoo-Profiler', filename,
+                ProfilerController.begin_date, ProfilerController.end_date,
+                exclude_query, log_path))
         _logger.info("Command:")
         _logger.info(command)
         subprocess.call(command, shell=True)
         _logger.info("Done")
+
+    def get_exclude_fname(self):
+        efnameid = request.env.ref(
+            'profiler.default_exclude_fnames_pstas', raise_if_not_found=False)
+        return [os.path.expanduser(path)
+                for path in (efnameid and efnameid.value or '').split(',')]
+
+    def get_exclude_query(self):
+        """Example '^(COPY|COMMIT)'
+        """
+        equeryid = request.env.ref(
+            'profiler.default_exclude_query_pgbader', raise_if_not_found=False)
+        if not equeryid:
+            return ''
+        exclude_queries = ''
+        for path in (equeryid and equeryid.value or '').split(','):
+            if not path:
+                continue
+            exclude_queries += ('--exclude-query "^(%s)" ' % path)
+        return exclude_queries
