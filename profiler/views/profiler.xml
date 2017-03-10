@@ -7,5 +7,17 @@
                 <script type="text/javascript" src="/profiler/static/src/js/player.js" />
             </xpath>
         </template>
+        <template id="profiler_assets_common" name="Profiler common assets" inherit_id="web.assets_common">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/profiler/static/src/js/profiler_common.js" />
+            </xpath>
+        </template>
+
+        <template id="profiler_assets_editor" name="Profiler Editor Assets" inherit_id="website.assets_editor">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/profiler/static/src/less/player.less" />
+                <script type="text/javascript" src="/profiler/static/src/js/website_profiler.js" />
+            </xpath>
+        </template>
     </data>
 </odoo>
