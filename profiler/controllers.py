@@ -90,12 +90,10 @@ class ProfilerController(http.Controller):
                 exclude_fnames=exclude_fname)
             with Capturing() as output:
                 print_pstats_list(pstats_list)
-            handle = tempfile.mkstemp(
-                suffix='.txt', prefix=filename, dir=dump_dir)[0]
-            res_file = os.fdopen(handle, "a")
-            for line in output:
-                res_file.write('%s\n' % line)
-            res_file.close()
+            result_path = os.path.join(dump_dir, '%s.txt' % filename)
+            with open(result_path, "a") as res_file:
+                for line in output:
+                    res_file.write('%s\n' % line)
             # PG_BADGER
             self.dump_pgbadger(dump_dir, 'pgbadger_output.txt')
             t_zip = tempfile.TemporaryFile()
