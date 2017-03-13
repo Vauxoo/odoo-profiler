@@ -85,6 +85,10 @@ class ProfilerController(http.Controller):
             filename = 'openerp_%s' % ts
             stats_path = os.path.join(dump_dir, '%s.stats' % filename)
             core.profile.dump_stats(stats_path)
+            _logger.info("Pstats Command:")
+            _logger.info(
+                "%s, sort='cumulative', limit=45, exclude_fnames=%s",
+                stats_path, exclude_fname)
             pstats_list = get_pstats_print2list(
                 stats_path, sort='cumulative', limit=45,
                 exclude_fnames=exclude_fname)
@@ -142,7 +146,7 @@ class ProfilerController(http.Controller):
                 pgbadger, 'Odoo-Profiler', filename,
                 ProfilerController.begin_date, ProfilerController.end_date,
                 exclude_query, log_path))
-        _logger.info("Command:")
+        _logger.info("Pgbadger Command:")
         _logger.info(command)
         subprocess.call(command, shell=True)
         _logger.info("Done")
