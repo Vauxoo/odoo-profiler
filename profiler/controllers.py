@@ -88,12 +88,12 @@ class ProfilerController(http.Controller):
             stats_path = os.path.join(dump_dir, '%s.stats' % filename)
             core.profile.dump_stats(stats_path)
             _logger.info("Pstats Command:")
+            params = {'fnames': stats_path, 'sort': 'cumulative', 'limit': 45,
+                      'exclude_fnames': exclude_fname}
             _logger.info(
-                "%s, sort='cumulative', limit=45, exclude_fnames=%s",
-                stats_path, exclude_fname)
-            pstats_list = get_pstats_print2list(
-                stats_path, sort='cumulative', limit=45,
-                exclude_fnames=exclude_fname)
+                "fnames=%(fnames)s, sort=%(sort)s,"
+                " limit=%(limit)s, exclude_fnames=%(exclude_fnames)s", params)
+            pstats_list = get_pstats_print2list(**params)
             with Capturing() as output:
                 print_pstats_list(pstats_list)
             result_path = os.path.join(dump_dir, '%s.txt' % filename)
