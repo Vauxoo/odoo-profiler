@@ -1,4 +1,6 @@
 # coding: utf-8
+# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+# Copyright 2016 Vauxoo (https://www.vauxoo.com) <info@vauxoo.com>
 import errno
 import logging
 import os

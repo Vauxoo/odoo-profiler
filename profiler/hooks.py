@@ -1,4 +1,6 @@
 # coding: utf-8
+# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+# Copyright 2016 Vauxoo (https://www.vauxoo.com) <info@vauxoo.com>
 import logging
 import os
 from cProfile import Profile
@@ -37,28 +39,6 @@ def dump_stats():
     core.profile.dump_stats(os.path.expanduser('~/.openerp_server.stats'))
 
 
-def patch_orm_methods():
-    """Show a command to modify OpenERP/Odoo ORM methods
-    so that profile can record."""
-
-    # TODO: Apply a monkey patch of nested method.
-    fname_to_patch = os.path.join(os.path.dirname(odoo.http.__file__),
-                                  "http.py")
-    odoo_is_patched = 'with profiling():' in open(fname_to_patch).read()
-    if odoo_is_patched:
-        _logger.info('The method odoo.api.make_wrapper is patching!')
-        return True
-    patch_cmds = [
-        'sed -i "s/response = f(\\*args, \\*\\*kw)/with profiling(): '
-        'response = f(*args, **kw)/g"' + fname_to_patch,
-        'sed -i "/# avoid hasattr/a ' + '\\ \\ \\ \\ \\ \\ \\ \\     '
-        'from odoo.addons.profiler import profiling" ' + fname_to_patch]
-    _logger.warn('You will need apply a manual patch to odoo.api.make_wrapper'
-                 ' to record all ORM methods. Please execute follow commands:'
-                 'Execute follow commands:\n' + '\n'.join(patch_cmds))
-    return False
-
-
 def create_profile():
     """Create the global, shared profile object."""
     _logger.info('Create core.profile')
@@ -86,5 +66,4 @@ def post_load():
         # Enable profile in test mode for orm methods.
         _logger.info('Enabling core and apply patch')
         core.enabled = True
-        patch_orm_methods()
         patch_stop()
