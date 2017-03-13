@@ -9,7 +9,7 @@
     'license': 'AGPL-3',
     'author': 'Georges Racinet, Vauxoo',
     'website': 'http://anybox.fr',
-    'depends': ['web'],
+    'depends': ['website'],
     'data': [
         'data/prfiler_excluding.xml',
         'security/group.xml',
