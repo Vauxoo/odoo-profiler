@@ -9,9 +9,9 @@
         </record>
 
         <!-- exclude-query de pgbader -->
-        <record id="default_exclude_query_pgbader" model="ir.config_parameter">
+        <record id="default_exclude_query_pgbadger" model="ir.config_parameter">
             <field name="key">exclude_query</field>
-            <field name="value">ir_translation,</field>
+            <field name="value">ir_translation</field>
         </record>
     </data>
 </odoo>

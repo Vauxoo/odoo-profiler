@@ -1,19 +1,35 @@
 # coding: utf-8
-# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+# License AGPL-3 or later (http://www.gnu.org/licenses/lgpl).
 # Copyright 2014 Anybox <http://anybox.fr>
 # Copyright 2016 Vauxoo (https://www.vauxoo.com) <info@vauxoo.com>
 import logging
 import os
+from contextlib import contextmanager
 from cProfile import Profile
-
 import odoo
+
 from odoo.http import WebRequest
 from odoo.service.server import ThreadedServer
-
-from . import core
-from .core import profiling
-
 _logger = logging.getLogger(__name__)
+
+
+class CoreProfile:
+    # The thread-shared profile object.
+    profile = None
+    # Indicates if the whole profiling functionality is globally active or not.
+    enabled = False
+
+
+@contextmanager
+def profiling():
+    """Thread local profile management, according to the shared :data:`enabled`
+    """
+    if CoreProfile.enabled:
+        CoreProfile.profile.enable()
+    yield
+
+    if CoreProfile.enabled:
+        CoreProfile.profile.disable()
 
 
 def patch_odoo():
@@ -37,13 +53,14 @@ def patch_odoo():
 def dump_stats():
     """Dump stats to standard file"""
     _logger.info('Dump stats')
-    core.profile.dump_stats(os.path.expanduser('~/.openerp_server.stats'))
+    CoreProfile.profile.dump_stats(
+        os.path.expanduser('~/.openerp_server.stats'))
 
 
 def create_profile():
     """Create the global, shared profile object."""
-    _logger.info('Create core.profile')
-    core.profile = Profile()
+    _logger.info('Create profile')
+    CoreProfile.profile = Profile()
 
 
 def patch_stop():
@@ -65,6 +82,6 @@ def post_load():
     patch_odoo()
     if odoo.tools.config['test_enable']:
         # Enable profile in test mode for orm methods.
-        _logger.info('Enabling core and apply patch')
-        core.enabled = True
+        _logger.info('Enabling profiler and apply patch')
+        CoreProfile.enabled = True
         patch_stop()

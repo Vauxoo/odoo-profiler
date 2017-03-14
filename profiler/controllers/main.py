@@ -1,5 +1,5 @@
 # coding: utf-8
-# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+# License AGPL-3 or later (http://www.gnu.org/licenses/lgpl).
 # Copyright 2014 Anybox <http://anybox.fr>
 # Copyright 2016 Vauxoo (https://www.vauxoo.com) <info@vauxoo.com>
 import errno
@@ -18,9 +18,10 @@ from odoo.tools.misc import find_in_path
 from odoo import http, tools
 from odoo.http import request, content_disposition
 
-from . import core
+from odoo.addons.profiler.hooks import CoreProfile as core
 
 _logger = logging.getLogger(__name__)
+DFTL_LOG_PATH = '/var/lib/postgresql/9.5/main/pg_log/postgresql.log'
 
 
 class Capturing(list):
@@ -126,18 +127,19 @@ class ProfilerController(http.Controller):
     def dump_pgbadger(self, dir_dump, output):
         pgbadger = find_in_path("pgbadger")
         if not pgbadger:
-            raise Exception("pgbadger not found")
+            _logger.error("Pgbadger not found")
+            return
         filename = os.path.join(dir_dump, output)
         logfilename = os.path.join(dir_dump, 'postgresql.log')
-        # TODO: Get ths path from os.environ or somewhere
-        log_path = '/var/lib/postgresql/9.5/main/pg_log/postgresql.log'
+        log_path = os.environ.get('PG_LOG_PATH', DFTL_LOG_PATH)
         if not os.path.exists(os.path.dirname(filename)):
             try:
                 os.makedirs(os.path.dirname(filename))
             except OSError as exc:
                 # error is different than File exists
                 if exc.errno != errno.EEXIST:
-                    raise
+                    _logger.error("File can be created")
+                    return
         shutil.copyfile(log_path, logfilename)
         _logger.info("Generating PG Badger report.")
         exclude_query = self.get_exclude_query()
@@ -158,18 +160,20 @@ class ProfilerController(http.Controller):
         efnameid = request.env.ref(
             'profiler.default_exclude_fnames_pstas', raise_if_not_found=False)
         return [os.path.expanduser(path)
-                for path in (efnameid and efnameid.value or '').split(',')]
+                for path in (
+                    efnameid and efnameid.value.strip(',') or '').split(',')]
 
     def get_exclude_query(self):
         """Example '^(COPY|COMMIT)'
         """
         equeryid = request.env.ref(
-            'profiler.default_exclude_query_pgbader', raise_if_not_found=False)
+            'profiler.default_exclude_query_pgbadger',
+            raise_if_not_found=False)
         if not equeryid:
             return ''
         exclude_queries = ''
-        for path in (equeryid and equeryid.value or '').split(','):
+        for path in (equeryid and equeryid.value.strip(',') or '').split(','):
             if not path:
                 continue
-            exclude_queries += ('--exclude-query "^(%s)" ' % path)
+            exclude_queries += '--exclude-query "^(%s)" ' % path
         return exclude_queries

@@ -1,5 +1,5 @@
 # coding: utf-8
-# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+# License AGPL-3 or later (http://www.gnu.org/licenses/lgpl).
 # Copyright 2014 Anybox <http://anybox.fr>
 # Copyright 2016 Vauxoo (https://www.vauxoo.com) <info@vauxoo.com>
 
@@ -9,7 +9,7 @@
     'category': 'devtools',
     'license': 'AGPL-3',
     'author': 'Georges Racinet, Vauxoo',
-    'website': 'http://anybox.fr',
+    'website': 'http://anybox.fr, http://vauxoo.com',
     'depends': ['website'],
     'data': [
         'data/prfiler_excluding.xml',
