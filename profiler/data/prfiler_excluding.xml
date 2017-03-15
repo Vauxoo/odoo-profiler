@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data>
 
         <!-- exclude_fnames de pstats_print2list -->
         <record id="default_exclude_fnames_pstas" model="ir.config_parameter">

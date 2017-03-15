@@ -5,7 +5,6 @@
 import errno
 import logging
 import os
-import subprocess
 import shutil
 import tempfile
 import sys
@@ -103,6 +102,8 @@ class ProfilerController(http.Controller):
                 for line in output:
                     res_file.write('%s\n' % line)
             # PG_BADGER
+            import time
+            time.sleep(2)
             self.dump_pgbadger(dump_dir, 'pgbadger_output.txt')
             t_zip = tempfile.TemporaryFile()
             tools.osutil.zip_dir(dump_dir, t_zip, include_dir=False)
@@ -143,25 +144,29 @@ class ProfilerController(http.Controller):
         shutil.copyfile(log_path, logfilename)
         _logger.info("Generating PG Badger report.")
         exclude_query = self.get_exclude_query()
-        command = (
-            '%s -f stderr -T "%s" -o %s -b "%s" -e "%s" --top 40 --sample 2 '
-            '--disable-type --disable-error --disable-hourly '
-            '--disable-session --disable-connection --disable-temporary '
-            '--quiet %s %s' % (
-                pgbadger, 'Odoo-Profiler', filename,
-                ProfilerController.begin_date, ProfilerController.end_date,
-                exclude_query, log_path))
+        command = [
+            pgbadger, '-f', 'stderr', '-T', 'Odoo-Profiler', '-o', filename,
+            '-b', ProfilerController.begin_date,
+            '-e', ProfilerController.end_date, '--sample', '2',
+            '--disable-type', '--disable-error', '--disable-hourly',
+            '--disable-session', '--disable-connection',
+            '--disable-temporary', '--quiet']
+        command.extend(exclude_query)
+        command.append(log_path)
+
         _logger.info("Pgbadger Command:")
         _logger.info(command)
-        subprocess.call(command, shell=True)
+        tools.exec_command_pipe(*command)
         _logger.info("Done")
 
     def get_exclude_fname(self):
         efnameid = request.env.ref(
             'profiler.default_exclude_fnames_pstas', raise_if_not_found=False)
+        if not efnameid:
+            return []
         return [os.path.expanduser(path)
-                for path in (
-                    efnameid and efnameid.value.strip(',') or '').split(',')]
+                for path in efnameid and efnameid.value.strip(',').split(',')
+                if path]
 
     def get_exclude_query(self):
         """Example '^(COPY|COMMIT)'
@@ -170,10 +175,9 @@ class ProfilerController(http.Controller):
             'profiler.default_exclude_query_pgbadger',
             raise_if_not_found=False)
         if not equeryid:
-            return ''
-        exclude_queries = ''
-        for path in (equeryid and equeryid.value.strip(',') or '').split(','):
-            if not path:
-                continue
-            exclude_queries += '--exclude-query "^(%s)" ' % path
+            return []
+        exclude_queries = []
+        for path in equeryid and equeryid.value.strip(',').split(','):
+            exclude_queries.extend(
+                ['--exclude-query', '"^(%s)" ' % path.encode('UTF-8')])
         return exclude_queries
