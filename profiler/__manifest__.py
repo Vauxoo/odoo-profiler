@@ -12,7 +12,7 @@
     'website': 'http://anybox.fr, http://vauxoo.com',
     'depends': ['website'],
     'data': [
-        'data/prfiler_excluding.xml',
+        'data/profiler_excluding.xml',
         'security/group.xml',
         'views/profiler.xml'
     ],
