@@ -102,8 +102,6 @@ class ProfilerController(http.Controller):
                 for line in output:
                     res_file.write('%s\n' % line)
             # PG_BADGER
-            import time
-            time.sleep(2)
             self.dump_pgbadger(dump_dir, 'pgbadger_output.txt')
             t_zip = tempfile.TemporaryFile()
             tools.osutil.zip_dir(dump_dir, t_zip, include_dir=False)
@@ -145,8 +143,8 @@ class ProfilerController(http.Controller):
         _logger.info("Generating PG Badger report.")
         exclude_query = self.get_exclude_query()
         command = [
-            pgbadger, '-f', 'stderr', '-T', 'Odoo-Profiler', '-o', filename,
-            '-b', ProfilerController.begin_date,
+            pgbadger, '-f', 'stderr', '-T', 'Odoo-Profiler',
+            '-o', '-', '-b', ProfilerController.begin_date,
             '-e', ProfilerController.end_date, '--sample', '2',
             '--disable-type', '--disable-error', '--disable-hourly',
             '--disable-session', '--disable-connection',
@@ -156,7 +154,9 @@ class ProfilerController(http.Controller):
 
         _logger.info("Pgbadger Command:")
         _logger.info(command)
-        tools.exec_command_pipe(*command)
+        result = tools.exec_command_pipe(*command)
+        with open(filename, 'w') as fw:
+            fw.write(result[1].read())
         _logger.info("Done")
 
     def get_exclude_fname(self):
