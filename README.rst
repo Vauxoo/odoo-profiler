@@ -39,11 +39,30 @@ Caveats
 * enabling the profile in one database actually does it for the whole
   instance
 * multiprocessing (``--workers``) is *not* taken into account
-* currently developped and tested with OpenERP 7.0 only
+* currently developped and tested with OpenERP 10.0 only
 * no special care for uninstallion : currently a restart is needed to
   finish uninstalling.
 * requests not going through web controllers are currently not taken
   into account
+  
+Requirements
+------------
+
+* Install `pgbadger <http://dalibo.github.io/pgbadger/>`_ binary package.
+* Install `pstats_print2list <https://pypi.python.org/pypi/pstats_print2list>`_ python package.
+* Enable postgresql logs from postgresql's configuration file (Default location for Linux Debian is `/etc/postgresql/*/main/postgresql.conf`)
+ - Add the following lines at final (A postgresql restart is required `/etc/init.d/postgresql restart`)
+
+```txt
+logging_collector=on
+log_destination='stderr'
+log_directory='pg_log'
+log_filename='postgresql.log'
+log_rotation_age=0
+log_checkpoints=on
+log_hostname=on
+log_line_prefix='%t [%p]: [%l-1] db=%d,user=%u '
+```
 
 
 Credit
@@ -51,6 +70,8 @@ Credit
 
 Remotely inspired from ZopeProfiler, although there is no online
 visualisation and there may never be one.
+
+This is a fork from https://bitbucket.org/anybox/odoo_profiler now maintained by Vauxoo.
 
 .. |player| image:: https://bytebucket.org/anybox/odoo_profiler/raw/default/doc/static/player.png
     :alt: Player to manage profiler
@@ -66,6 +87,3 @@ visualisation and there may never be one.
 .. |clear_stats| image:: https://bytebucket.org/anybox/odoo_profiler/raw/default/doc/static/clear_stats.png
     :alt: Clear and remove stats file
     :height: 35px
-
-
-Note: This is a fork from https://bitbucket.org/anybox/odoo_profiler
