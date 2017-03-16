@@ -53,16 +53,16 @@ Requirements
 * Enable postgresql logs from postgresql's configuration file (Default location for Linux Debian is `/etc/postgresql/*/main/postgresql.conf`)
  - Add the following lines at final (A postgresql restart is required `/etc/init.d/postgresql restart`)
 
-```txt
-logging_collector=on
-log_destination='stderr'
-log_directory='pg_log'
-log_filename='postgresql.log'
-log_rotation_age=0
-log_checkpoints=on
-log_hostname=on
-log_line_prefix='%t [%p]: [%l-1] db=%d,user=%u '
-```
+.. code-block:: text
+
+ logging_collector=on
+ log_destination='stderr'
+ log_directory='pg_log'
+ log_filename='postgresql.log'
+ log_rotation_age=0
+ log_checkpoints=on
+ log_hostname=on
+ log_line_prefix='%t [%p]: [%l-1] db=%d,user=%u '
 
 
 Credit
