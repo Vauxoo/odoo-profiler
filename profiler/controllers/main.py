@@ -21,6 +21,39 @@ from odoo.addons.profiler.hooks import CoreProfile as core
 
 _logger = logging.getLogger(__name__)
 DFTL_LOG_PATH = '/var/lib/postgresql/9.5/main/pg_log/postgresql.log'
+# PGOPTIONS = (' -c client_min_messages=notice -c log_min_messages=warning '
+#              '-c log_min_error_statement=error '
+#              '-c log_min_duration_statement=0 -c log_connections=on '
+#              '-c log_disconnections=on -c log_duration=off '
+#              '-c log_error_verbosity=verbose -c log_lock_waits=on '
+#              '-c log_statement=none -c log_temp_files=0')
+
+PG_OPTIONS = {
+    # Index 0 is custom value Index 1 original value
+    'SHOW client_min_messages': ["SET client_min_messages='notice'",
+                                 "SET client_min_messages='notice'"],
+    'SHOW log_min_messages': ["SET log_min_messages='warning'",
+                              "SET log_min_messages='warning'"],
+    'SHOW log_min_error_statement': ["SET log_min_error_statement='error'",
+                                     "SET log_min_error_statement='error'"],
+    'SHOW log_min_duration_statement': ["SET log_min_duration_statement=0",
+                                        "SET log_min_duration_statement=-1"],
+    # *** OperationalError: parameter "log_connections|log_disconnections"
+    # cannot be set after connection start
+    # 'SHOW log_connections': ["SET log_connections=true",
+    #                          "SET log_connections=false"],
+    # 'SHOW log_disconnections': ["SET log_disconnections=true",
+    #                             "SET log_disconnections=false"],
+    'SHOW log_duration': ["SET log_duration=false",
+                          "SET log_duration=false"],
+    'SHOW log_error_verbosity': ["SET log_error_verbosity='verbose'",
+                                 "SET log_error_verbosity='default'"],
+    'SHOW log_lock_waits': ["SET log_lock_waits=true",
+                            "SET log_lock_waits=false"],
+    'SHOW log_statement': ["SET log_statement=none",
+                           "SET log_statement=none"],
+    'SHOW log_temp_files': ["SET log_temp_files=0",
+                            "SET log_temp_files=-1"]}
 
 
 class Capturing(list):
@@ -56,6 +89,8 @@ class ProfilerController(http.Controller):
         ProfilerController.begin_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_enabled'
+        # os.environ.setdefault('PGOPTIONS', PGOPTIONS)
+        self.pg_enable()
 
     @http.route(['/web/profiler/disable'], type='json', auth="user")
     def disable(self, **post):
@@ -64,6 +99,9 @@ class ProfilerController(http.Controller):
         ProfilerController.end_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_disabled'
+        # if os.environ.get('PGOPTIONS', False):
+        #     del os.environ['PGOPTIONS']
+        self.pg_disable()
 
     @http.route(['/web/profiler/clear'], type='json', auth="user")
     # @http.jsonrequest
@@ -154,6 +192,10 @@ class ProfilerController(http.Controller):
 
         _logger.info("Pgbadger Command:")
         _logger.info(command)
+        # my_env = os.environ.copy()
+        # result = _exec_pipe(command[0], command[1:], my_env)
+        # result = tools.exec_command_pipe(command[0], command[1:],
+        #                                  my_env)
         result = tools.exec_command_pipe(*command)
         with open(filename, 'w') as fw:
             fw.write(result[1].read())
@@ -181,3 +223,11 @@ class ProfilerController(http.Controller):
             exclude_queries.extend(
                 ['--exclude-query', '"^(%s)" ' % path.encode('UTF-8')])
         return exclude_queries
+
+    def pg_enable(self):
+        for option in PG_OPTIONS:
+            request.cr.execute(PG_OPTIONS[option][0])
+
+    def pg_disable(self):
+        for option in PG_OPTIONS:
+            request.cr.execute(PG_OPTIONS[option][1])
