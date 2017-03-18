@@ -13,9 +13,8 @@ from datetime import datetime
 from cStringIO import StringIO
 from pstats_print2list import get_pstats_print2list, print_pstats_list
 
-import odoo
 from odoo.tools.misc import find_in_path
-from odoo import http, tools
+from odoo import http, tools, sql_db
 from odoo.http import request, content_disposition
 
 from odoo.addons.profiler.hooks import CoreProfile as core
@@ -217,7 +216,7 @@ class ProfilerController(http.Controller):
 
         """
         request.cr.rollback()
-        dsn = odoo.sql_db.connection_info_for(request.cr.dbname)
-        odoo.sql_db._Pool.close_all(dsn[1])
-        db = odoo.sql_db.db_connect(request.cr.dbname)
+        dsn = sql_db.connection_info_for(request.cr.dbname)
+        sql_db._Pool.close_all(dsn[1])
+        db = sql_db.db_connect(request.cr.dbname)
         request._cr = db.cursor()
