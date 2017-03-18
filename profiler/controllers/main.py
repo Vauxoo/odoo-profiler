@@ -20,7 +20,6 @@ from odoo.http import request, content_disposition
 from odoo.addons.profiler.hooks import CoreProfile as core
 
 _logger = logging.getLogger(__name__)
-
 DFTL_LOG_PATH = '/var/lib/postgresql/9.5/main/pg_log/postgresql.log'
 
 PGOPTIONS = (
