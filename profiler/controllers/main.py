@@ -23,12 +23,14 @@ _logger = logging.getLogger(__name__)
 
 DFTL_LOG_PATH = '/var/lib/postgresql/9.5/main/pg_log/postgresql.log'
 
-PGOPTIONS = (' -c client_min_messages=notice -c log_min_messages=warning '
-             '-c log_min_error_statement=error '
-             '-c log_min_duration_statement=0 -c log_connections=on '
-             '-c log_disconnections=on -c log_duration=off '
-             '-c log_error_verbosity=verbose -c log_lock_waits=on '
-             '-c log_statement=none -c log_temp_files=0')
+PGOPTIONS = (
+    '-c client_min_messages=notice -c log_min_messages=warning '
+    '-c log_min_error_statement=error '
+    '-c log_min_duration_statement=0 -c log_connections=on '
+    '-c log_disconnections=on -c log_duration=off '
+    '-c log_error_verbosity=verbose -c log_lock_waits=on '
+    '-c log_statement=none -c log_temp_files=0 '
+)
 
 
 class Capturing(list):
