@@ -80,7 +80,6 @@ class ProfilerController(http.Controller):
         self.empty_cursor_pool()
 
     @http.route(['/web/profiler/clear'], type='json', auth="user")
-    # @http.jsonrequest
     def clear(self, **post):
         core.profile.clear()
         _logger.info("Cleared stats")
@@ -88,7 +87,6 @@ class ProfilerController(http.Controller):
         ProfilerController.end_date = ''
         ProfilerController.begin_date = ''
 
-    # @http.httprequest
     @http.route(['/web/profiler/dump'], type='http', auth="user")
     def dump(self, token, **post):
         """Provide the stats as a file download.
@@ -197,7 +195,27 @@ class ProfilerController(http.Controller):
         return exclude_queries
 
     def empty_cursor_pool(self):
-        """DOC"""
+        """This method cleans (rollback) all current transactions over actual
+        cursor in order to avoid errors with waiting transactions.
+            - request.cr.rollback()
+
+        Also connections on current database's only are closed by the next
+        statement
+            - dsn = odoo.sql_db.connection_info_for(request.cr.dbname)
+            - odoo.sql_db._Pool.close_all(dsn[1])
+        Otherwise next error will be trigger
+        'InterfaceError: connection already closed'
+
+        Finally new cursor is assigned to the request object, this cursor will
+        take the os.environ setted. In this case the os.environ is setted with
+        all 'PGOPTIONS' required to log all sql transactions in postgres.log
+        file.
+
+        If this method is called one more time, it will create a new cursor and
+        take the os.environ again, this is usefully if we want to reset
+        'PGOPTIONS'
+
+        """
         request.cr.rollback()
         dsn = odoo.sql_db.connection_info_for(request.cr.dbname)
         odoo.sql_db._Pool.close_all(dsn[1])
