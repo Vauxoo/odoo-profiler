@@ -75,8 +75,7 @@ class ProfilerController(http.Controller):
         ProfilerController.end_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_disabled'
-        if 'PGOPTIONS' in os.environ:
-            del os.environ['PGOPTIONS']
+        os.environ.pop("PGOPTIONS", None)
         self.empty_cursor_pool()
 
     @http.route(['/web/profiler/clear'], type='json', auth="user")
