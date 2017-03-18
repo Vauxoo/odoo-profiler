@@ -14,13 +14,22 @@ from cStringIO import StringIO
 from pstats_print2list import get_pstats_print2list, print_pstats_list
 
 from odoo.tools.misc import find_in_path
-from odoo import http, tools
+from odoo import http, tools, sql_db
 from odoo.http import request, content_disposition
 
 from odoo.addons.profiler.hooks import CoreProfile as core
 
 _logger = logging.getLogger(__name__)
 DFTL_LOG_PATH = '/var/lib/postgresql/9.5/main/pg_log/postgresql.log'
+
+PGOPTIONS = (
+    '-c client_min_messages=notice -c log_min_messages=warning '
+    '-c log_min_error_statement=error '
+    '-c log_min_duration_statement=0 -c log_connections=on '
+    '-c log_disconnections=on -c log_duration=off '
+    '-c log_error_verbosity=verbose -c log_lock_waits=on '
+    '-c log_statement=none -c log_temp_files=0 '
+)
 
 
 class Capturing(list):
@@ -56,6 +65,8 @@ class ProfilerController(http.Controller):
         ProfilerController.begin_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_enabled'
+        os.environ['PGOPTIONS'] = PGOPTIONS
+        self.empty_cursor_pool()
 
     @http.route(['/web/profiler/disable'], type='json', auth="user")
     def disable(self, **post):
@@ -64,9 +75,10 @@ class ProfilerController(http.Controller):
         ProfilerController.end_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_disabled'
+        os.environ.pop("PGOPTIONS", None)
+        self.empty_cursor_pool()
 
     @http.route(['/web/profiler/clear'], type='json', auth="user")
-    # @http.jsonrequest
     def clear(self, **post):
         core.profile.clear()
         _logger.info("Cleared stats")
@@ -74,7 +86,6 @@ class ProfilerController(http.Controller):
         ProfilerController.end_date = ''
         ProfilerController.begin_date = ''
 
-    # @http.httprequest
     @http.route(['/web/profiler/dump'], type='http', auth="user")
     def dump(self, token, **post):
         """Provide the stats as a file download.
@@ -181,3 +192,31 @@ class ProfilerController(http.Controller):
             exclude_queries.extend(
                 ['--exclude-query', '"^(%s)" ' % path.encode('UTF-8')])
         return exclude_queries
+
+    def empty_cursor_pool(self):
+        """This method cleans (rollback) all current transactions over actual
+        cursor in order to avoid errors with waiting transactions.
+            - request.cr.rollback()
+
+        Also connections on current database's only are closed by the next
+        statement
+            - dsn = odoo.sql_db.connection_info_for(request.cr.dbname)
+            - odoo.sql_db._Pool.close_all(dsn[1])
+        Otherwise next error will be trigger
+        'InterfaceError: connection already closed'
+
+        Finally new cursor is assigned to the request object, this cursor will
+        take the os.environ setted. In this case the os.environ is setted with
+        all 'PGOPTIONS' required to log all sql transactions in postgres.log
+        file.
+
+        If this method is called one more time, it will create a new cursor and
+        take the os.environ again, this is usefully if we want to reset
+        'PGOPTIONS'
+
+        """
+        request.cr.rollback()
+        dsn = sql_db.connection_info_for(request.cr.dbname)
+        sql_db._Pool.close_all(dsn[1])
+        db = sql_db.db_connect(request.cr.dbname)
+        request._cr = db.cursor()
