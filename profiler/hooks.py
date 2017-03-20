@@ -6,10 +6,10 @@ import logging
 import os
 from contextlib import contextmanager
 from cProfile import Profile
-import odoo
+import openerp
 
-from odoo.http import WebRequest
-from odoo.service.server import ThreadedServer
+from openerp.http import WebRequest
+from openerp.service.server import ThreadedServer
 _logger = logging.getLogger(__name__)
 
 
@@ -41,7 +41,7 @@ def patch_odoo():
 
     For instance, Odoo spawns a new thread for each request.
     """
-    _logger.info('Patching odoo.http.WebRequest._call_function')
+    _logger.info('Patching openerp.http.WebRequest._call_function')
     webreq_f_origin = WebRequest._call_function
 
     def webreq_f(*args, **kwargs):
@@ -67,10 +67,10 @@ def patch_stop():
     """When the server is stopped then save the result of cProfile stats"""
     origin_stop = ThreadedServer.stop
 
-    _logger.info('Patching odoo.service.server.ThreadedServer.stop')
+    _logger.info('Patching openerp.service.server.ThreadedServer.stop')
 
     def stop(*args, **kwargs):
-        if odoo.tools.config['test_enable']:
+        if openerp.tools.config['test_enable']:
             dump_stats()
         return origin_stop(*args, **kwargs)
     ThreadedServer.stop = stop
@@ -80,7 +80,7 @@ def post_load():
     _logger.info('Post load')
     create_profile()
     patch_odoo()
-    if odoo.tools.config['test_enable']:
+    if openerp.tools.config['test_enable']:
         # Enable profile in test mode for orm methods.
         _logger.info('Enabling profiler and apply patch')
         CoreProfile.enabled = True

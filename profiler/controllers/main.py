@@ -13,11 +13,11 @@ from datetime import datetime
 from cStringIO import StringIO
 from pstats_print2list import get_pstats_print2list, print_pstats_list
 
-from odoo.tools.misc import find_in_path
-from odoo import http, tools, sql_db
-from odoo.http import request, content_disposition
+from openerp.tools.misc import find_in_path
+from openerp import http, tools, sql_db
+from openerp.http import request, content_disposition
 
-from odoo.addons.profiler.hooks import CoreProfile as core
+from openerp.addons.profiler.hooks import CoreProfile as core
 
 _logger = logging.getLogger(__name__)
 DFTL_LOG_PATH = '/var/lib/postgresql/9.5/main/pg_log/postgresql.log'
@@ -200,8 +200,8 @@ class ProfilerController(http.Controller):
 
         Also connections on current database's only are closed by the next
         statement
-            - dsn = odoo.sql_db.connection_info_for(request.cr.dbname)
-            - odoo.sql_db._Pool.close_all(dsn[1])
+            - dsn = openerp.sql_db.connection_info_for(request.cr.dbname)
+            - openerp.sql_db._Pool.close_all(dsn[1])
         Otherwise next error will be trigger
         'InterfaceError: connection already closed'
 

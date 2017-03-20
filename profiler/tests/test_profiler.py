@@ -3,12 +3,12 @@
 # Copyright 2014 Anybox <http://anybox.fr>
 # Copyright 2016 Vauxoo (https://www.vauxoo.com) <info@vauxoo.com>
 
-import odoo.tests
+import openerp.tests
 
 
-@odoo.tests.common.at_install(False)
-@odoo.tests.common.post_install(True)
-class TestUi(odoo.tests.HttpCase):
+@openerp.tests.common.at_install(False)
+@openerp.tests.common.post_install(True)
+class TestUi(openerp.tests.HttpCase):
     def test_01_admin_profiler_tour(self):
         self.phantom_js(
             "/",
