@@ -5,7 +5,7 @@
         <!-- exclude_fnames de pstats_print2list -->
         <record id="default_exclude_fnames_pstas" model="ir.config_parameter">
             <field name="key">exclude_fnames</field>
-            <field name="value">/.repo_requirements,~/odoo-10.0,/usr/,></field>
+            <field name="value">/.repo_requirements,~/odoo-9.0,/usr/,></field>
         </record>
 
         <!-- exclude-query de pgbader -->
