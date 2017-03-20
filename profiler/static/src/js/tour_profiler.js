@@ -1,33 +1,30 @@
 odoo.define("profiler.tour.profiler", function (require) {
     "use strict";
 
-    var core = require("web.core");
-    var tour = require("web_tour.tour");
-    var base = require("web_editor.base");
-    var _t = core._t;
+    var tour = require("web.Tour");
 
-    tour.register("profile", {
-        test: true,
-        url: "/",
-        wait_for: base.ready(),
-    },
-        [
+    tour.register({
+        id: 'profile',
+        name: "Profiler Tour",
+        path: "/",
+        mode: 'test',
+        steps: [
             {
-                content: "Start profiling",
-                trigger: ".o_menu_systray li a.profiler_enable",
+                title: "Start profiling",
+                element: "#oe_systray li a.profiler_enable",
             },
             {
-                content: "Stop profiling",
-                trigger: ".o_menu_systray li a.profiler_disable",
+                title: "Stop profiling",
+                element: "#oe_systray li a.profiler_disable",
             },
             {
-                content: "Dump profiling",
-                trigger: ".o_menu_systray li a.profiler_dump",
+                title: "Dump profiling",
+                element: "#oe_systray li a.profiler_dump",
             },
             {
-                content: "Clear profiling",
-                trigger: ".o_menu_systray li a.profiler_clear",
+                title: "Clear profiling",
+                element: "#oe_systray li a.profiler_clear",
             },
         ]
-    );
+    });
 });

@@ -12,6 +12,6 @@ class TestUi(openerp.tests.HttpCase):
     def test_01_admin_profiler_tour(self):
         self.phantom_js(
             "/",
-            "odoo.__DEBUG__.services['web_tour.tour'].run('profile')",
-            "odoo.__DEBUG__.services['web_tour.tour'].tours.profile.ready",
+            "odoo.__DEBUG__.services['web.Tour'].run('profile')",
+            "odoo.__DEBUG__.services['web.Tour'].tours.profile",
             login="admin")
