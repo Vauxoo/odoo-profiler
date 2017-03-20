@@ -16,7 +16,7 @@ odoo.define('profiler.website', function (require) {
         var profilerPlayer = new profiler.ProfilerPlayer();
         profilerPlayer.rpc('/web/profiler/initial_state', {}).done(function(state) {
             if (state.has_player_group) {
-                profilerPlayer.prependTo($('#oe_main_menu_navbar .o_menu_systray'));
+                profilerPlayer.prependTo($('#oe_systray'));
                 profilerPlayer.apply_class(state.player_state);
             }
         });
