@@ -39,7 +39,7 @@ Caveats
 * enabling the profile in one database actually does it for the whole
   instance
 * multiprocessing (``--workers``) is *not* taken into account
-* currently developped and tested with OpenERP 10.0 only
+* currently developped and tested with OpenERP 9.0 only
 * no special care for uninstallion : currently a restart is needed to
   finish uninstalling.
 * requests not going through web controllers are currently not taken

@@ -12,7 +12,7 @@ Check the Profiler menu in admin menu
 Configuration
 =============
 By default profiler module adds two system parameters
-    - exclude_fnames > '/.repo_requirements,~/odoo-10.0,/usr/,>'
+    - exclude_fnames > '/.repo_requirements,~/odoo-9.0,/usr/,>'
     - exclude_query > 'ir_translation'.
 
 These parameters can be configurated in order to exclude some outputs from
