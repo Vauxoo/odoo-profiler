@@ -8,7 +8,6 @@ openerp.profiler = function(instance) {
             "click .profiler_dump": "dump",
         },
         apply_class: function(css_class) {
-            console.log(css_class)
             this.$el.removeClass('profiler_player_enabled');
             this.$el.removeClass('profiler_player_disabled');
             this.$el.removeClass('profiler_player_clear');
