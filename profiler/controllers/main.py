@@ -15,12 +15,13 @@ from pstats_print2list import get_pstats_print2list, print_pstats_list
 
 from openerp.tools.misc import find_in_path
 from openerp import http, tools, sql_db
-from openerp.http import request, content_disposition
+from openerp.addons.web.controllers.main import content_disposition
+from openerp.http import request
 
 from openerp.addons.profiler.hooks import CoreProfile as core
 
 _logger = logging.getLogger(__name__)
-DFTL_LOG_PATH = '/var/lib/postgresql/9.5/main/pg_log/postgresql.log'
+DFTL_LOG_PATH = '/var/log/postgresql/postgresql-9.3-main.log'
 
 PGOPTIONS = (
     '-c client_min_messages=notice -c log_min_messages=warning '
@@ -200,7 +201,7 @@ class ProfilerController(http.Controller):
 
         Also connections on current database's only are closed by the next
         statement
-            - dsn = openerp.sql_db.connection_info_for(request.cr.dbname)
+            - dsn = openerp.sql_db.dsn(request.cr.dbname)
             - openerp.sql_db._Pool.close_all(dsn[1])
         Otherwise next error will be trigger
         'InterfaceError: connection already closed'
@@ -216,7 +217,7 @@ class ProfilerController(http.Controller):
 
         """
         request.cr.rollback()
-        dsn = sql_db.connection_info_for(request.cr.dbname)
+        dsn = sql_db.dsn(request.cr.dbname)
         sql_db._Pool.close_all(dsn[1])
         db = sql_db.db_connect(request.cr.dbname)
         request._cr = db.cursor()
