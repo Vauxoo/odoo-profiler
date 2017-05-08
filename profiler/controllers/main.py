@@ -21,7 +21,7 @@ from openerp.http import request
 from openerp.addons.profiler.hooks import CoreProfile as core
 
 _logger = logging.getLogger(__name__)
-DFTL_LOG_PATH = '/var/log/postgresql/postgresql-9.3-main.log'
+DFTL_LOG_PATH = '/var/lib/postgresql/9.3/main/pg_log/postgresql.log'
 
 PGOPTIONS = (
     '-c client_min_messages=notice -c log_min_messages=warning '
