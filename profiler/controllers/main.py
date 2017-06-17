@@ -20,7 +20,9 @@ from openerp.http import request, content_disposition
 from openerp.addons.profiler.hooks import CoreProfile as core
 
 _logger = logging.getLogger(__name__)
-DFTL_LOG_PATH = '/var/lib/postgresql/9.5/main/pg_log/postgresql.log'
+POSTGRESQL_VERSION = os.environ.get('PSQL_VERSION', '9.3')
+DFTL_LOG_PATH = '/var/lib/postgresql/%s/main/pg_log/postgresql.log' % (
+    POSTGRESQL_VERSION)
 
 PGOPTIONS = (
     '-c client_min_messages=notice -c log_min_messages=warning '
