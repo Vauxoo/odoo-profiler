@@ -5,7 +5,6 @@
 import errno
 import logging
 import os
-import shutil
 import tempfile
 import sys
 
@@ -142,7 +141,6 @@ class ProfilerController(http.Controller):
             _logger.error("Pgbadger not found")
             return
         filename = os.path.join(dir_dump, output)
-        logfilename = os.path.join(dir_dump, 'postgresql.log')
         log_path = os.environ.get('PG_LOG_PATH', DFTL_LOG_PATH)
         if not os.path.exists(os.path.dirname(filename)):
             try:
@@ -152,7 +150,6 @@ class ProfilerController(http.Controller):
                 if exc.errno != errno.EEXIST:
                     _logger.error("File can be created")
                     return
-        shutil.copyfile(log_path, logfilename)
         _logger.info("Generating PG Badger report.")
         exclude_query = self.get_exclude_query()
         command = [
