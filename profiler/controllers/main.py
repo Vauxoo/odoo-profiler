@@ -154,9 +154,10 @@ class ProfilerController(http.Controller):
                     return
         _logger.info("Generating PG Badger report.")
         exclude_query = self.get_exclude_query()
+        dbname = cursor.dbname
         command = [
             pgbadger, '-f', 'stderr', '-T', 'Odoo-Profiler',
-            '-o', '-', '-b', ProfilerController.begin_date,
+            '-o', '-', '-d', dbname, '-b', ProfilerController.begin_date,
             '-e', ProfilerController.end_date, '--sample', '2',
             '--disable-type', '--disable-error', '--disable-hourly',
             '--disable-session', '--disable-connection',
