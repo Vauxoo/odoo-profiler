@@ -17,11 +17,11 @@ from odoo import http, tools, sql_db
 from odoo.http import request, content_disposition
 
 from odoo.addons.profiler.hooks import CoreProfile as core
+from odoo.service.db import dump_db_manifest
+
 
 _logger = logging.getLogger(__name__)
-POSTGRESQL_VERSION = os.environ.get('PSQL_VERSION', '9.3')
-DFTL_LOG_PATH = '/var/lib/postgresql/%s/main/pg_log/postgresql.log' % (
-    POSTGRESQL_VERSION)
+DFTL_LOG_PATH = '/var/lib/postgresql/%s/main/pg_log/postgresql.log'
 
 PGOPTIONS = (
     '-c client_min_messages=notice -c log_min_messages=warning '
@@ -114,7 +114,7 @@ class ProfilerController(http.Controller):
                 for line in output:
                     res_file.write('%s\n' % line)
             # PG_BADGER
-            self.dump_pgbadger(dump_dir, 'pgbadger_output.txt')
+            self.dump_pgbadger(dump_dir, 'pgbadger_output.txt', request.cr)
             t_zip = tempfile.TemporaryFile()
             tools.osutil.zip_dir(dump_dir, t_zip, include_dir=False)
             t_zip.seek(0)
@@ -135,13 +135,14 @@ class ProfilerController(http.Controller):
             'player_state': ProfilerController.player_state,
         }
 
-    def dump_pgbadger(self, dir_dump, output):
+    def dump_pgbadger(self, dir_dump, output, cursor):
         pgbadger = find_in_path("pgbadger")
         if not pgbadger:
             _logger.error("Pgbadger not found")
             return
         filename = os.path.join(dir_dump, output)
-        log_path = os.environ.get('PG_LOG_PATH', DFTL_LOG_PATH)
+        pg_version = dump_db_manifest(cursor)['pg_version']
+        log_path = os.environ.get('PG_LOG_PATH', DFTL_LOG_PATH % pg_version)
         if not os.path.exists(os.path.dirname(filename)):
             try:
                 os.makedirs(os.path.dirname(filename))
@@ -152,9 +153,10 @@ class ProfilerController(http.Controller):
                     return
         _logger.info("Generating PG Badger report.")
         exclude_query = self.get_exclude_query()
+        dbname = cursor.dbname
         command = [
             pgbadger, '-f', 'stderr', '-T', 'Odoo-Profiler',
-            '-o', '-', '-b', ProfilerController.begin_date,
+            '-o', '-', '-d', dbname, '-b', ProfilerController.begin_date,
             '-e', ProfilerController.end_date, '--sample', '2',
             '--disable-type', '--disable-error', '--disable-hourly',
             '--disable-session', '--disable-connection',
