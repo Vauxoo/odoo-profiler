@@ -6,10 +6,14 @@ import logging
 import os
 from contextlib import contextmanager
 from cProfile import Profile
-import odoo
 
+from psycopg2.extensions import make_dsn
+
+import odoo
+from odoo import sql_db
 from odoo.http import WebRequest
 from odoo.service.server import ThreadedServer
+
 _logger = logging.getLogger(__name__)
 
 
@@ -40,6 +44,9 @@ def patch_odoo():
     execution.
 
     For instance, Odoo spawns a new thread for each request.
+
+    Modify database connect method to add options to enable postgresql logging
+    based on PGOPTIONS environment variable
     """
     _logger.info('Patching odoo.http.WebRequest._call_function')
     webreq_f_origin = WebRequest._call_function
@@ -48,6 +55,18 @@ def patch_odoo():
         with profiling():
             return webreq_f_origin(*args, **kwargs)
     WebRequest._call_function = webreq_f
+
+    _logger.info('Patching odoo.sql_db.db_connect')
+    db_connect_origin = sql_db.db_connect
+
+    def dbconnect_f(to, *args, **kwargs):
+        try:
+            dsn = make_dsn(options=os.environ['PGOPTIONS'] or '')
+            to += ' ' + dsn
+        except KeyError:
+            pass
+        return db_connect_origin(to, *args, **kwargs)
+    sql_db.db_connect = dbconnect_f
 
 
 def dump_stats():
