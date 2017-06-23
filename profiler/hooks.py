@@ -6,7 +6,6 @@ import logging
 import os
 from contextlib import contextmanager
 from cProfile import Profile
-from psycopg2.extensions import make_dsn
 
 import openerp
 
@@ -60,8 +59,7 @@ def patch_odoo():
     db_connect_origin = sql_db.db_connect
     def dbconnect_f(to, *args, **kwargs):
         try:
-            dsn = make_dsn(options=os.environ['PGOPTIONS'] or '')
-            to += ' ' + dsn
+            to += " options='%s' " % (os.environ['PGOPTIONS'] or '')
         except KeyError:
             pass
         return db_connect_origin(to, *args, **kwargs)
