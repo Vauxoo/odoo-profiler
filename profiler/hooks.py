@@ -7,8 +7,6 @@ import os
 from contextlib import contextmanager
 from cProfile import Profile
 
-from psycopg2.extensions import make_dsn
-
 import odoo
 from odoo import sql_db
 from odoo.http import WebRequest
@@ -61,8 +59,7 @@ def patch_odoo():
 
     def dbconnect_f(to, *args, **kwargs):
         try:
-            dsn = make_dsn(options=os.environ['PGOPTIONS'] or '')
-            to += ' ' + dsn
+            to += " options='%s' " % (os.environ['PGOPTIONS'] or '')
         except KeyError:
             pass
         return db_connect_origin(to, *args, **kwargs)
