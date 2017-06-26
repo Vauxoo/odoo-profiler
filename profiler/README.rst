@@ -75,7 +75,7 @@ Credits
 Contributors
 ------------
 
-* Georges Racinet
+* Georges Racinet <gracinet@anybox.fr>
    - Remotely inspired from ZopeProfiler, although there is no online visualisation and there may never be one.
 * Moisés López <moylop260@vauxoo.com>
 * Hugo Adan <hugo@vauxoo.com>

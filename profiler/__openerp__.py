@@ -8,8 +8,8 @@
     'version': '10.0.1.0.0',
     'category': 'Tools',
     'license': 'AGPL-3',
-    'author': 'Georges Racinet, Vauxoo, Odoo Community Association (OCA)',
-    'website': 'http://anybox.fr, http://vauxoo.com',
+    'author': 'Anybox, Vauxoo, Odoo Community Association (OCA)',
+    'website': 'https://odoo-community.org',
     'depends': ['website'],
     'data': [
         'data/profiler_excluding.xml',
