@@ -6,8 +6,7 @@
 Profiler
 ========
 
-This module is an integration of cProfile for Odoo.
-Check the Profiler menu in admin menu
+Integration of cProfile and PgBadger.
 
 Installation
 ============
