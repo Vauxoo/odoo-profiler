@@ -10,16 +10,21 @@ import tempfile
 from cStringIO import StringIO
 from datetime import datetime
 
-from pstats_print2list import get_pstats_print2list, print_pstats_list
-
 from openerp import http, sql_db, tools
-from openerp.addons.profiler.hooks import CoreProfile as core
 from openerp.addons.web.controllers.main import content_disposition
 from openerp.http import request
 from openerp.service.db import dump_db_manifest
 from openerp.tools.misc import find_in_path
 
+from ..hooks import CoreProfile as core
+
 _logger = logging.getLogger(__name__)
+
+try:
+    from pstats_print2list import get_pstats_print2list, print_pstats_list
+except ImportError as err:
+    _logger.debug(err)
+
 DFTL_LOG_PATH = '/var/lib/postgresql/%s/main/pg_log/postgresql.log'
 
 PGOPTIONS = (
