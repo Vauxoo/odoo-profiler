@@ -8,7 +8,7 @@
     'version': '10.0.1.0.0',
     'category': 'devtools',
     'license': 'AGPL-3',
-    'author': 'Georges Racinet, Vauxoo',
+    'author': 'Georges Racinet, Vauxoo, Odoo Community Association (OCA)',
     'website': 'http://anybox.fr, http://vauxoo.com',
     'depends': ['website'],
     'data': [
@@ -16,6 +16,11 @@
         'security/group.xml',
         'views/profiler.xml'
     ],
+    'external_dependencies': {
+        'python': [
+            'pstats_print2list',
+        ],
+    },
     'qweb': [
         'static/src/xml/player.xml',
     ],
