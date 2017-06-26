@@ -8,16 +8,15 @@ from contextlib import contextmanager
 from cProfile import Profile
 
 import openerp
-
+from openerp import sql_db
 from openerp.http import WebRequest
 from openerp.service.server import ThreadedServer
-from openerp import sql_db
 
 _logger = logging.getLogger(__name__)
 
 
-class CoreProfile:
-    # The thread-shared profile object.
+class CoreProfile(object):
+    """The thread-shared profile object"""
     profile = None
     # Indicates if the whole profiling functionality is globally active or not.
     enabled = False
@@ -57,6 +56,7 @@ def patch_odoo():
 
     _logger.info('Patching openerp.sql_db.db_connect')
     db_connect_origin = sql_db.db_connect
+
     def dbconnect_f(to, *args, **kwargs):
         try:
             to += " options='%s' " % (os.environ['PGOPTIONS'] or '')

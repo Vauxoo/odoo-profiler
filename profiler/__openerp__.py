@@ -6,16 +6,21 @@
 {
     'name': 'profiler',
     'version': '10.0.1.0.0',
-    'category': 'devtools',
+    'category': 'Tools',
     'license': 'AGPL-3',
-    'author': 'Georges Racinet, Vauxoo',
-    'website': 'http://anybox.fr, http://vauxoo.com',
+    'author': 'Anybox, Vauxoo, Odoo Community Association (OCA)',
+    'website': 'https://odoo-community.org',
     'depends': ['website'],
     'data': [
         'data/profiler_excluding.xml',
         'security/group.xml',
         'views/profiler.xml'
     ],
+    'external_dependencies': {
+        'python': [
+            'pstats_print2list',
+        ],
+    },
     'qweb': [
         'static/src/xml/player.xml',
     ],
