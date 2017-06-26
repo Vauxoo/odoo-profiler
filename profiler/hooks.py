@@ -57,6 +57,7 @@ def patch_odoo():
 
     _logger.info('Patching openerp.sql_db.db_connect')
     db_connect_origin = sql_db.db_connect
+
     def dbconnect_f(to, *args, **kwargs):
         try:
             to += " options='%s' " % (os.environ['PGOPTIONS'] or '')
