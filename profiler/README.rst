@@ -16,6 +16,7 @@ To install this module, you need the following requirements:
 
 * Install `pgbadger <http://dalibo.github.io/pgbadger/>`_ binary package.
 * Install `pstats_print2list <https://pypi.python.org/pypi/pstats_print2list>`_ python package.
+* Set `PG_LOG_PATH` environment variable to know location of the `postgresql.log` file by default is `/var/lib/postgresql/9.X/main/pg_log/postgresql.log`
 * Enable postgresql logs from postgresql's configuration file (Default location for Linux Debian is `/etc/postgresql/*/main/postgresql.conf`)
   - Add the following lines at final (A postgresql restart is required `/etc/init.d/postgresql restart`)
 
