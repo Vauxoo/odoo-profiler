@@ -15,8 +15,8 @@ from openerp.service.server import ThreadedServer
 _logger = logging.getLogger(__name__)
 
 
-class CoreProfile:
-    # The thread-shared profile object.
+class CoreProfile(object):
+    """The thread-shared profile object"""
     profile = None
     # Indicates if the whole profiling functionality is globally active or not.
     enabled = False
