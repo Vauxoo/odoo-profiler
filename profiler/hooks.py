@@ -8,10 +8,9 @@ from contextlib import contextmanager
 from cProfile import Profile
 
 import openerp
-
+from openerp import sql_db
 from openerp.http import WebRequest
 from openerp.service.server import ThreadedServer
-from openerp import sql_db
 
 _logger = logging.getLogger(__name__)
 
