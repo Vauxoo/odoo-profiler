@@ -45,13 +45,13 @@ profiling stats or pgbadger output.
 Usage
 =====
 
-After installation, a player is add on the header bar, with
-three buttons:
+After installation, a player is add on the header bar, with following buttons:
 
-   .. figure:: static/description/player.png
+    - .. figure:: static/description/player.png
        :alt: Player to manage profiler
 
-* Start profiling 
+
+* Start profiling
     - .. figure:: static/description/start_profiling.png
        :alt: Start profiling
        :height: 35px
