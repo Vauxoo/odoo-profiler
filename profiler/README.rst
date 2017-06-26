@@ -46,28 +46,27 @@ Usage
 =====
 
 After installation, a player is add on the header bar, with
-four items:
+three buttons:
 
-.. |player| figure:: static/description/player.png
-    :alt: Player to manage profiler
+   .. figure:: static/description/player.png
+       :alt: Player to manage profiler
 
 * Start profiling 
-.. |start_profiling| figure:: static/description/start_profiling.png
-    :alt: Start profiling
-    :height: 35px
-
+    - .. figure:: static/description/start_profiling.png
+       :alt: Start profiling
+       :height: 35px
 * Stop profiling
-.. |stop_profiling| figure:: static/description/stop_profiling.png
-    :alt: Stop profiling
-    :height: 35px
+    - .. figure:: static/description/stop_profiling.png
+       :alt: Stop profiling
+       :height: 35px
 * Download stats: download stats file
-.. |dump_stats| figure:: static/description/dump_stats.png
-    :alt: Download cprofile stats file
-    :height: 35px
+    - .. figure:: static/description/dump_stats.png
+       :alt: Download cprofile stats file
+       :height: 35px
 * Clear stats
-.. |clear_stats| figure:: static/description/clear_stats.png
-    :alt: Clear and remove stats file
-    :height: 35px
+    - .. figure:: static/description/clear_stats.png
+       :alt: Clear and remove stats file
+       :height: 35px
 
 
 Credits
