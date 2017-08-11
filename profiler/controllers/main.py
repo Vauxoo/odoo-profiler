@@ -105,7 +105,7 @@ class ProfilerController(http.Controller):
             stats_path = os.path.join(dump_dir, '%s.stats' % filename)
             core.profile.dump_stats(stats_path)
             _logger.info("Pstats Command:")
-            params = {'fnames': stats_path, 'sort': 'factor', 'limit': 45,
+            params = {'fnames': stats_path, 'limit': 45,
                       'exclude_fnames': exclude_fname}
             _logger.info(
                 "fnames=%(fnames)s, sort=%(sort)s,"
