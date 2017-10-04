@@ -9,8 +9,7 @@ import tempfile
 import sys
 
 from datetime import datetime
-from cStringIO import StringIO
-from pstats_print2list import get_pstats_print2list, print_pstats_list
+from pstats_print2list.pstats_print2list import get_pstats_print2list, print_pstats_list
 
 from odoo.tools.misc import find_in_path
 from odoo import http, tools, sql_db
@@ -18,6 +17,11 @@ from odoo.http import request, content_disposition
 
 from odoo.addons.profiler.hooks import CoreProfile as core
 from odoo.service.db import dump_db_manifest
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 
 _logger = logging.getLogger(__name__)
