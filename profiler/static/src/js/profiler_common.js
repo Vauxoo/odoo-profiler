@@ -12,6 +12,15 @@ odoo.define('profiler.player', function (require) {
             "click .profiler_clear": "clear",
             "click .profiler_dump": "dump",
         },
+        start: function(){
+            var self = this;
+            self._rpc({route: '/web/profiler/initial_state'}).done(function(state) {
+                if (state.has_player_group) {
+                    self.apply_class(state.player_state);
+                }
+            });
+
+        },
         apply_class: function(css_class) {
             this.$el.removeClass('profiler_player_enabled');
             this.$el.removeClass('profiler_player_disabled');
@@ -19,15 +28,15 @@ odoo.define('profiler.player', function (require) {
             this.$el.addClass(css_class);
         },
         enable: function() {
-            this.rpc('/web/profiler/enable', {});
+            this._rpc({route: '/web/profiler/enable'});
             this.apply_class('profiler_player_enabled');
         },
         disable: function() {
-            this.rpc('/web/profiler/disable', {});
+            this._rpc({route: '/web/profiler/disable'});
             this.apply_class('profiler_player_disabled');
         },
         clear: function() {
-            this.rpc('/web/profiler/clear', {});
+            this._rpc({route: '/web/profiler/clear'});
             this.apply_class('profiler_player_clear');
         },
         dump: function() {
