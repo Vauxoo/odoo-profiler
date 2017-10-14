@@ -2,11 +2,11 @@
 # License AGPL-3 or later (http://www.gnu.org/licenses/lgpl).
 # Copyright 2014 Anybox <http://anybox.fr>
 # Copyright 2016 Vauxoo (https://www.vauxoo.com) <info@vauxoo.com>
+import contextlib
 import errno
 import logging
 import os
 import tempfile
-import sys
 
 from datetime import datetime
 from pstats_print2list.pstats_print2list import get_pstats_print2list, print_pstats_list
@@ -17,12 +17,6 @@ from odoo.http import request, content_disposition
 
 from odoo.addons.profiler.hooks import CoreProfile as core
 from odoo.service.db import dump_db_manifest
-
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
-
 
 _logger = logging.getLogger(__name__)
 DFTL_LOG_PATH = '/var/lib/postgresql/%s/main/pg_log/postgresql.log'
@@ -35,18 +29,6 @@ PGOPTIONS = (
     '-c log_error_verbosity=verbose -c log_lock_waits=on '
     '-c log_statement=none -c log_temp_files=0 '
 )
-
-
-class Capturing(list):
-    def __enter__(self):
-        self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
-        return self
-
-    def __exit__(self, *args):
-        self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio    # free up some memory
-        sys.stdout = self._stdout
 
 
 class ProfilerController(http.Controller):
@@ -108,15 +90,13 @@ class ProfilerController(http.Controller):
             params = {'fnames': stats_path, 'limit': 45,
                       'exclude_fnames': exclude_fname}
             _logger.info(
-                "fnames=%(fnames)s, sort=%(sort)s,"
+                "fnames=%(fnames)s,"
                 " limit=%(limit)s, exclude_fnames=%(exclude_fnames)s", params)
             pstats_list = get_pstats_print2list(**params)
-            with Capturing() as output:
-                print_pstats_list(pstats_list)
             result_path = os.path.join(dump_dir, '%s.txt' % filename)
             with open(result_path, "a") as res_file:
-                for line in output:
-                    res_file.write('%s\n' % line)
+                with contextlib.redirect_stdout(res_file):
+                    print_pstats_list(pstats_list)
             # PG_BADGER
             self.dump_pgbadger(dump_dir, 'pgbadger_output.txt', request.cr)
             t_zip = tempfile.TemporaryFile()
@@ -147,6 +127,8 @@ class ProfilerController(http.Controller):
         filename = os.path.join(dir_dump, output)
         pg_version = dump_db_manifest(cursor)['pg_version']
         log_path = os.environ.get('PG_LOG_PATH', DFTL_LOG_PATH % pg_version)
+        if not os.path.isfile(log_path):
+            log_path = DFTL_LOG_PATH % pg_version
         if not os.path.exists(os.path.dirname(filename)):
             try:
                 os.makedirs(os.path.dirname(filename))
@@ -171,7 +153,7 @@ class ProfilerController(http.Controller):
         _logger.info("Pgbadger Command:")
         _logger.info(command)
         result = tools.exec_command_pipe(*command)
-        with open(filename, 'w') as fw:
+        with open(filename, 'wb') as fw:
             fw.write(result[1].read())
         _logger.info("Done")
 
