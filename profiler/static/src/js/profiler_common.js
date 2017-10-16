@@ -14,11 +14,12 @@ odoo.define('profiler.player', function (require) {
         },
         start: function(){
             var self = this;
-            self._rpc({route: '/web/profiler/initial_state'}).done(function(state) {
+            self._rpc({route: '/web/profiler/initial_state'}).then(function(state) {
                 if (state.has_player_group) {
                     self.apply_class(state.player_state);
                 }
             });
+            return this._super.apply(this, arguments);
 
         },
         apply_class: function(css_class) {

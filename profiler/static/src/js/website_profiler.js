@@ -2,24 +2,29 @@ odoo.define('profiler.website', function (require) {
     'use strict';
 
     var profiler = require('profiler.player');
-    var ajax = require('web.ajax');
-    var core = require('web.core');
-    // wait for implicit dependencies to load
-    require('web_editor.base');
-    var qweb = core.qweb;
+    var Widget = require('web.Widget');
+    var session = require('web.session');
+    var websiteNavbarData = require('website.navbar');
 
-    if(!$('#oe_main_menu_navbar').length) {
-        return false;
+    if (!session.is_system) {
+        return;
     }
 
-    return ajax.loadXML('/profiler/static/src/xml/player.xml', qweb).then(function() {
-        var profilerPlayer = new profiler.ProfilerPlayer();
-        profilerPlayer.rpc('/web/profiler/initial_state', {}).done(function(state) {
-            if (state.has_player_group) {
-                profilerPlayer.prependTo($('#oe_main_menu_navbar .o_menu_systray'));
-                profilerPlayer.apply_class(state.player_state);
-            }
-        });
+    var ProfilerMenu = Widget.extend({
+        xmlDependencies: ['/profiler/static/src/xml/player.xml'],
+        start: function () {
+            var profilerPlayer = new profiler.ProfilerPlayer(this);
+            return $.when(
+                this._super.apply(this, arguments),
+                    profilerPlayer.prependTo(this.$el)
+            );
+        },
     });
+
+    websiteNavbarData.websiteNavbarRegistry.add(ProfilerMenu, '.o_menu_systray');
+
+    return {
+        ProfilerMenu: ProfilerMenu
+    };
 
 });
