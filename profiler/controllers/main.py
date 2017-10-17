@@ -104,7 +104,7 @@ class ProfilerController(http.Controller):
             params = {'fnames': stats_path, 'limit': 45,
                       'exclude_fnames': exclude_fname}
             _logger.info(
-                "fnames=%(fnames)s, sort=%(sort)s,"
+                "fnames=%(fnames)s,"
                 " limit=%(limit)s, exclude_fnames=%(exclude_fnames)s", params)
             pstats_list = get_pstats_print2list(**params)
             with Capturing() as output:
@@ -143,6 +143,8 @@ class ProfilerController(http.Controller):
         filename = os.path.join(dir_dump, output)
         pg_version = dump_db_manifest(cursor)['pg_version']
         log_path = os.environ.get('PG_LOG_PATH', DFTL_LOG_PATH % pg_version)
+        if not os.path.isfile(log_path):
+            log_path = DFTL_LOG_PATH % pg_version
         if not os.path.exists(os.path.dirname(filename)):
             try:
                 os.makedirs(os.path.dirname(filename))
