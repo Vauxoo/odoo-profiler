@@ -104,7 +104,7 @@ class ProfilerController(http.Controller):
             params = {'fnames': stats_path, 'limit': 45,
                       'exclude_fnames': exclude_fname}
             _logger.info(
-                "fnames=%(fnames)s, sort=%(sort)s,"
+                "fnames=%(fnames)s,"
                 " limit=%(limit)s, exclude_fnames=%(exclude_fnames)s", params)
             pstats_list = get_pstats_print2list(**params)
             with Capturing() as output:
