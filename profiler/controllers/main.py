@@ -66,8 +66,8 @@ class ProfilerController(http.Controller):
         ProfilerController.begin_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_enabled'
-        os.environ['PGOPTIONS'] = PGOPTIONS
-        self.empty_cursor_pool()
+        # os.environ['PGOPTIONS'] = PGOPTIONS
+        # self.empty_cursor_pool()
 
     @http.route(['/web/profiler/disable'], type='json', auth="user")
     def disable(self, **post):
@@ -76,8 +76,8 @@ class ProfilerController(http.Controller):
         ProfilerController.end_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_disabled'
-        os.environ.pop("PGOPTIONS", None)
-        self.empty_cursor_pool()
+        # os.environ.pop("PGOPTIONS", None)
+        # self.empty_cursor_pool()
 
     @http.route(['/web/profiler/clear'], type='json', auth="user")
     def clear(self, **post):

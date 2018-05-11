@@ -79,9 +79,9 @@ def patch_stop():
 def post_load():
     _logger.info('Post load')
     create_profile()
-    patch_odoo()
-    if openerp.tools.config['test_enable']:
-        # Enable profile in test mode for orm methods.
-        _logger.info('Enabling profiler and apply patch')
-        CoreProfile.enabled = True
-        patch_stop()
+    # patch_odoo()
+    # if openerp.tools.config['test_enable']:
+    #     # Enable profile in test mode for orm methods.
+    #     _logger.info('Enabling profiler and apply patch')
+    #     CoreProfile.enabled = True
+    #     patch_stop()
