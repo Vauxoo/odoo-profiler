@@ -14,7 +14,7 @@ from pstats_print2list import get_pstats_print2list, print_pstats_list
 
 from openerp.tools.misc import find_in_path
 from openerp import http, tools, sql_db
-from openerp.http import request, content_disposition
+from openerp.http import request
 
 from openerp.addons.profiler.hooks import CoreProfile as core
 from openerp.service.db import dump_db_manifest
@@ -118,6 +118,7 @@ class ProfilerController(http.Controller):
             t_zip = tempfile.TemporaryFile()
             tools.osutil.zip_dir(dump_dir, t_zip, include_dir=False)
             t_zip.seek(0)
+            content_disposition = request.registry['ir.http'].content_disposition
             headers = [
                 ('Content-Type', 'application/octet-stream; charset=binary'),
                 ('Content-Disposition', content_disposition(
