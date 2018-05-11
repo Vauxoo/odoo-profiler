@@ -22,5 +22,4 @@
     'installable': True,
     'application': False,
     'auto_install': False,
-    'post_load': 'post_load',
 }
