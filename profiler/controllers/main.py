@@ -107,7 +107,7 @@ class ProfilerController(http.Controller):
             ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             filename = 'openerp_%s' % ts
             stats_path = os.path.join(dump_dir, '%s.stats' % filename)
-            core.profile.dump_stats(stats_path)
+            CoreProfile.profile.dump_stats(stats_path)
             _logger.info("Pstats Command:")
             params = {'fnames': stats_path, 'limit': 45,
                       'exclude_fnames': exclude_fname}
