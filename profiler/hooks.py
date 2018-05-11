@@ -3,7 +3,7 @@
 # Copyright 2014 Anybox <http://anybox.fr>
 # Copyright 2016 Vauxoo (https://www.vauxoo.com) <info@vauxoo.com>
 import logging
-# import os
+import os
 from contextlib import contextmanager
 from cProfile import Profile
 # import openerp
@@ -11,6 +11,8 @@ from cProfile import Profile
 # from openerp.http import WebRequest
 # from openerp.service.server import ThreadedServer
 _logger = logging.getLogger(__name__)
+
+DEFAULT_PROFILER_FNAME = os.path.expanduser('~/.profiler.stats')
 
 
 class CoreProfile(object):
@@ -38,6 +40,14 @@ class CoreProfile(object):
             if CoreProfile.enabled:
                 CoreProfile.profile.disable()
 
+    @staticmethod
+    def dump_stats():
+        """Dump stats to standard file"""
+        profiler_fname = os.environ.get(
+            "PROFILER_FNAME", DEFAULT_PROFILER_FNAME)
+        _logger.info('Dump stats at %s', profiler_fname)
+        CoreProfile.profile.dump_stats(profiler_fname)
+
 # def patch_odoo():
 #     """Modify Odoo entry points so that profile can record.
 
@@ -54,13 +64,6 @@ class CoreProfile(object):
 #         with profiling():
 #             return webreq_f_origin(*args, **kwargs)
 #     WebRequest._call_function = webreq_f
-
-
-# def _____dump_stats():
-#     """Dump stats to standard file"""
-#     _logger.info('Dump stats')
-#     CoreProfile.profile.dump_stats(
-#         os.path.expanduser('~/.openerp_server.stats'))
 
 # def _____patch_stop():
 #     """When the server is stopped then save the result of cProfile stats"""
@@ -83,4 +86,3 @@ class CoreProfile(object):
 #     #     # Enable profile in test mode for orm methods.
 #     #     _logger.info('Enabling profiler and apply patch')
 #     #     CoreProfile.enabled = True
-#     #     patch_stop()
