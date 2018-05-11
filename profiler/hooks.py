@@ -17,15 +17,9 @@ DEFAULT_PROFILER_FNAME = os.path.expanduser('~/.profiler.stats')
 
 class CoreProfile(object):
     # The thread-shared profile object.
-    profile = None
+    profile = Profile()
     # Indicates if the whole profiling functionality is globally active or not.
     enabled = False
-
-    def __init__(self):
-        """Create the global, shared profile object."""
-        super(CoreProfile, self).__init__()
-        _logger.info('Create profile')
-        CoreProfile.profile = Profile()
 
     @staticmethod
     @contextmanager
