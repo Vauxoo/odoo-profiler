@@ -14,9 +14,10 @@ from pstats_print2list import get_pstats_print2list, print_pstats_list
 
 from openerp.tools.misc import find_in_path
 from openerp import http, tools, sql_db
+from openerp.http import WebRequest
 from openerp.http import request
 
-from openerp.addons.profiler.hooks import CoreProfile as core
+from openerp.addons.profiler.hooks import CoreProfile
 from openerp.service.db import dump_db_manifest
 
 
@@ -31,6 +32,13 @@ PGOPTIONS = (
     '-c log_error_verbosity=verbose -c log_lock_waits=on '
     '-c log_statement=none -c log_temp_files=0 '
 )
+
+
+class WebRequestProfiler(WebRequest):
+    def _call_function(self, *args, **kwargs):
+        _logger.info('Patching openerp.http.WebRequest._call_function')
+        with profiling():
+            return super(WebRequestProfiler, self)._call_function(*args, **kwargs)
 
 
 class Capturing(list):
@@ -62,7 +70,7 @@ class ProfilerController(http.Controller):
     @http.route(['/web/profiler/enable'], type='json', auth="user")
     def enable(self):
         _logger.info("Enabling")
-        core.enabled = True
+        CoreProfile.enabled = True
         ProfilerController.begin_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_enabled'
@@ -72,7 +80,7 @@ class ProfilerController(http.Controller):
     @http.route(['/web/profiler/disable'], type='json', auth="user")
     def disable(self, **post):
         _logger.info("Disabling")
-        core.enabled = False
+        CoreProfile.enabled = False
         ProfilerController.end_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_disabled'
@@ -81,7 +89,7 @@ class ProfilerController(http.Controller):
 
     @http.route(['/web/profiler/clear'], type='json', auth="user")
     def clear(self, **post):
-        core.profile.clear()
+        CoreProfile.profile.clear()
         _logger.info("Cleared stats")
         ProfilerController.player_state = 'profiler_player_clear'
         ProfilerController.end_date = ''
