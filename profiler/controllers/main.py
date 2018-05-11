@@ -34,12 +34,18 @@ PGOPTIONS = (
 )
 
 
-class WebRequestProfiler(WebRequest):
-    def _call_function(self, *args, **kwargs):
-        _logger.info('Patching openerp.http.WebRequest._call_function')
-        with profiling():
-            return super(WebRequestProfiler, self)._call_function(*args, **kwargs)
+# class WebRequestProfiler(http.WebRequest):
+#     def __init__(self, *args, **kwargs):
+#         import pdb;pdb.set_trace()
+#         super(WebRequestProfiler, self).__init__(*args, **kwargs)
 
+#     def _call_function(self, *args, **kwargs):
+#         _logger.info('Patching openerp.http.WebRequest._call_function')
+#         import pdb;pdb.set_trace()
+#         with CoreProfile.profiling():
+#             return super(WebRequestProfiler, self)._call_function(*args, **kwargs)
+
+# http.WebRequest = WebRequestProfiler
 
 class Capturing(list):
     def __enter__(self):

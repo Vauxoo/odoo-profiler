@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from cProfile import Profile
 # import openerp
 
-# from openerp.http import WebRequest
+from openerp.http import WebRequest
 # from openerp.service.server import ThreadedServer
 _logger = logging.getLogger(__name__)
 
@@ -42,22 +42,22 @@ class CoreProfile(object):
         _logger.info('Dump stats at %s', profiler_fname)
         CoreProfile.profile.dump_stats(profiler_fname)
 
-# def patch_odoo():
-#     """Modify Odoo entry points so that profile can record.
+def patch_odoo():
+    """Modify Odoo entry points so that profile can record.
 
-#     Odoo is a multi-threaded program. Therefore, the :data:`profile` object
-#     needs to be enabled/disabled each in each thread to capture all the
-#     execution.
+    Odoo is a multi-threaded program. Therefore, the :data:`profile` object
+    needs to be enabled/disabled each in each thread to capture all the
+    execution.
 
-#     For instance, Odoo spawns a new thread for each request.
-#     """
-#     _logger.info('Patching openerp.http.WebRequest._call_function')
-#     webreq_f_origin = WebRequest._call_function
+    For instance, Odoo spawns a new thread for each request.
+    """
+    _logger.info('Patching openerp.http.WebRequest._call_function')
+    webreq_f_origin = WebRequest._call_function
 
-#     def webreq_f(*args, **kwargs):
-#         with profiling():
-#             return webreq_f_origin(*args, **kwargs)
-#     WebRequest._call_function = webreq_f
+    def webreq_f(*args, **kwargs):
+        with CoreProfile.profiling():
+            return webreq_f_origin(*args, **kwargs)
+    WebRequest._call_function = webreq_f
 
 # def _____patch_stop():
 #     """When the server is stopped then save the result of cProfile stats"""
@@ -72,10 +72,10 @@ class CoreProfile(object):
 #     ThreadedServer.stop = stop
 
 
-# def post_load():
-#     _logger.info('Post load')
-#     create_profile()
-#     # patch_odoo()
+def post_load():
+    # _logger.info('Post load')
+    # create_profile()
+    patch_odoo()
 #     # if openerp.tools.config['test_enable']:
 #     #     # Enable profile in test mode for orm methods.
 #     #     _logger.info('Enabling profiler and apply patch')
