@@ -16,6 +16,7 @@
         'security/group.xml',
         'views/profiler.xml',
         'views/profiler_profile.xml',
+        'security/ir.model.access.csv',
     ],
     'qweb': [
         'static/src/xml/player.xml',
