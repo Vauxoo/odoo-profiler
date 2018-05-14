@@ -5,8 +5,9 @@
       <field name="model">profiler.profile</field>
       <field name="arch" type="xml">
         <tree>
-            <field name="enable_postgresql"/>
             <field name="enable_python"/>
+            <field name="enable_postgresql"/>
+            <field name="use_index"/>
             <field name="date_started"/>
             <field name="date_finished"/>
         </tree>
@@ -28,6 +29,7 @@
                     <field name="name"/>
                     <field name="enable_python"/>
                     <field name="enable_postgresql"/>
+                    <field name="use_index"/>
                     <field name="date_started"/>
                     <field name="date_finished"/>
                     <field name="state"/>

@@ -24,6 +24,10 @@ class ProfilerProfile(models.Model):
     enable_postgresql = fields.Boolean(
         default=False,
         help="It requires postgresql server logs seudo-enabled")
+    use_index = fields.Boolean(
+        default=False,
+        help="Index human-readable cProfile attachment."
+        "\nWarning: Uses more resources.")
     date_started = fields.Char(readonly=True)
     date_finished = fields.Char(readonly=True)
     state = fields.Selection([
@@ -58,7 +62,7 @@ class ProfilerProfile(models.Model):
         return stats_string
 
     @api.model
-    def dump_stats(self, started, finished):
+    def dump_stats(self, started, finished, indexed=None):
         attachment = None
         with tools.osutil.tempdir() as dump_dir:
             started = fields.Datetime.from_string(
@@ -81,12 +85,13 @@ class ProfilerProfile(models.Model):
                     'datas_fname': cprofile_fname,
                     'description': 'cProfile dump stats',
                 })
-                # try:
-                #     attachment.index_content = (
-                #         self.get_stats_string(cprofile_path))
-                # except:
-                #     # Fancy feature but not stop process if fails
-                #     pass
+                try:
+                    if indexed:
+                        attachment.index_content = (
+                            self.get_stats_string(cprofile_path))
+                except:
+                    # Fancy feature but not stop process if fails
+                    pass
                 _logger.info("cProfile stats stored.")
             else:
                 _logger.info("cProfile stats empty.")
@@ -100,7 +105,7 @@ class ProfilerProfile(models.Model):
             date_finished=fields.Datetime.now(),
             state='disabled'
         ))
-        self.dump_stats(self.date_started, self.date_finished)
+        self.dump_stats(self.date_started, self.date_finished, self.use_index)
         ProfilerProfile.profile.clear()
         ProfilerProfile.enabled = False
 
