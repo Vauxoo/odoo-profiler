@@ -22,8 +22,6 @@
                     groups="base.group_system" states="disabled"/>
                 <button name="disable" string="Disable" type="object"
                     groups="base.group_system" states="enabled"/>
-                <button name="clear" string="Clear" type="object"
-                    groups="base.group_system"/>
             </header>
             <group>
                 <group>

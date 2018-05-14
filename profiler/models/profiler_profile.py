@@ -39,9 +39,7 @@ class ProfilerProfile(models.Model):
             state='disabled'
         ))
         self.enabled = False
-
-    @api.multi
-    def clear(self):
+        self.profile.dump_stats("/tmp/borrar.stats")
         self.profile.clear()
 
     @staticmethod
