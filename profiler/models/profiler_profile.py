@@ -13,8 +13,10 @@ _logger = logging.getLogger(__name__)
 class ProfilerProfile(models.Model):
     _name = 'profiler.profile'
 
-    enable_postgresql = fields.Boolean()
-    enable_python = fields.Boolean()
+    enable_python = fields.Boolean(default=True)
+    enable_postgresql = fields.Boolean(
+        default=False,
+        help="It requires postgresql server logs seudo-enabled")
     date_started = fields.Char(readonly=True)
     date_finished = fields.Char(readonly=True)
     state = fields.Selection([
