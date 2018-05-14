@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import os
 import logging
 
 from contextlib import contextmanager
 from cProfile import Profile
 
-from openerp import api, fields, models
+from openerp import api, fields, models, tools
 
 _logger = logging.getLogger(__name__)
 
@@ -47,7 +48,12 @@ class ProfilerProfile(models.Model):
             state='disabled'
         ))
         ProfilerProfile.enabled = False
-        self.profile.dump_stats("/tmp/borrar.stats")
+        with tools.osutil.tempdir() as dump_dir:
+            cprofile_fname = 'profile_stats_%d_%s_to_%s.cprofile' % (
+                self.id, self.date_started, self.date_finished)
+            cprofile_fname = os.path.join(dump_dir, cprofile_fname)
+            _logger.info("Dumping cProfile [%s]" % cprofile_fname)
+            self.profile.dump_stats(cprofile_fname)
         self.profile.clear()
 
     @staticmethod
