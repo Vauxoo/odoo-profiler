@@ -1,2 +1,2 @@
 
-from . import profile
+from . import profiler_profile

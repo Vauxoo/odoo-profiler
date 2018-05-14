@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from contextlib import contextmanager
 from cProfile import Profile
 
 from openerp import api, fields, models
@@ -42,3 +43,16 @@ class ProfilerProfile(models.Model):
     @api.multi
     def clear(self):
         self.profile.clear()
+
+    @staticmethod
+    @contextmanager
+    def profiling():
+        """Thread local profile management, according to the shared "enabled"
+        """
+        if ProfilerProfile.enabled:
+            ProfilerProfile.profile.enable()
+        try:
+            yield
+        finally:
+            if ProfilerProfile.enabled:
+                ProfilerProfile.profile.disable()
