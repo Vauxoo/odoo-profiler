@@ -3,7 +3,7 @@
 # Copyright 2014 Anybox <http://anybox.fr>
 # Copyright 2016 Vauxoo (https://www.vauxoo.com) <info@vauxoo.com>
 
-from odoo import fields, models
+from openerp import fields, models
 
 
 class ProfilerProfile(models.Model):

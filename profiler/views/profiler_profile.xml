@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record model="ir.ui.view" id="profiler.profile.list">
+    <record model="ir.ui.view" id="profile_form">
         <field name="name">profiler.profile</field>
         <field name="model">profiler.profile</field>
         <field name="arch" type="xml">
@@ -12,7 +12,7 @@
             </form>
         </field>
     </record>
-    <record model="ir.ui.view" id="profiler.profile.list">
+    <record model="ir.ui.view" id="profile_list">
         <field name="name">profiler.profile</field>
         <field name="model">profiler.profile</field>
         <field name="arch" type="xml">
@@ -24,4 +24,15 @@
             </tree>
         </field>
     </record>
+    <record model="ir.actions.act_window" id="profile_action_window">
+        <field name="name">profile.action.window</field>
+        <field name="res_model">profiler.profile</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem name="Profiler" id="menu_main_profiler"
+        groups="base.group_system" sequence="40"/>
+    <menuitem name="Profiler" id="menu_profiler" parent="menu_main_profiler"/>
+    <menuitem name="Profile" id="menu_profile" parent="menu_profiler"
+        action="profile_action_window"/>
+
 </odoo>
