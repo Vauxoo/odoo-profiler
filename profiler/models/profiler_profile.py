@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import base64
 import os
 import logging
 
@@ -8,12 +9,16 @@ from cProfile import Profile
 
 from openerp import api, fields, models, tools
 
+DATETIME_FORMAT_FILE = "%Y%m%d_%H%M%S"
+CPROFILE_EMPTY_CHARS = b"{0"
+
 _logger = logging.getLogger(__name__)
 
 
 class ProfilerProfile(models.Model):
     _name = 'profiler.profile'
 
+    name = fields.Char()
     enable_python = fields.Boolean(default=True)
     enable_postgresql = fields.Boolean(
         default=False,
@@ -33,6 +38,7 @@ class ProfilerProfile(models.Model):
 
     @api.multi
     def enable(self):
+        self.ensure_one()
         _logger.info("Enabling profiler")
         self.write(dict(
             date_started=fields.Datetime.now(),
@@ -42,19 +48,38 @@ class ProfilerProfile(models.Model):
 
     @api.multi
     def disable(self):
+        self.ensure_one()
         _logger.info("Disabling profiler")
         self.write(dict(
             date_finished=fields.Datetime.now(),
             state='disabled'
         ))
-        ProfilerProfile.enabled = False
         with tools.osutil.tempdir() as dump_dir:
-            cprofile_fname = 'profile_stats_%d_%s_to_%s.cprofile' % (
-                self.id, self.date_started, self.date_finished)
-            cprofile_fname = os.path.join(dump_dir, cprofile_fname)
-            _logger.info("Dumping cProfile [%s]" % cprofile_fname)
-            self.profile.dump_stats(cprofile_fname)
-        self.profile.clear()
+            started = fields.Datetime.from_string(
+                    self.date_started).strftime(DATETIME_FORMAT_FILE)
+            finished = fields.Datetime.from_string(
+                    self.date_finished).strftime(DATETIME_FORMAT_FILE)
+            cprofile_fname = 'stats_%d_%s_to_%s.cprofile' % (
+                self.id, started, finished)
+            cprofile_path = os.path.join(dump_dir, cprofile_fname)
+            _logger.info("Dumping cProfile '%s'", cprofile_path)
+            self.profile.dump_stats(cprofile_path)
+            with open(cprofile_path, "rb") as f_cprofile:
+                datas = f_cprofile.read()
+            if datas != CPROFILE_EMPTY_CHARS:
+                self.env['ir.attachment'].create({
+                    'name': cprofile_fname,
+                    'res_id': self.id,
+                    'res_model': self._name,
+                    'datas': base64.encodestring(datas),
+                    'datas_fname': cprofile_fname,
+                    'description': 'cProfile dump stats',
+                })
+                _logger.info("cProfile stats stored.")
+            else:
+                _logger.info("cProfile stats empty.")
+        ProfilerProfile.profile.clear()
+        ProfilerProfile.enabled = False
 
     @staticmethod
     @contextmanager
