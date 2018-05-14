@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from cStringIO import StringIO
-
 import base64
-import os
 import logging
+import os
 import pstats
-
 from contextlib import contextmanager
 from cProfile import Profile
+from cStringIO import StringIO
 
 from openerp import api, fields, models, tools
 
