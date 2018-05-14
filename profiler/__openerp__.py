@@ -15,6 +15,7 @@
         'data/profiler_excluding.xml',
         'security/group.xml',
         'views/profiler.xml'
+        'views/profiler_profile.xml'
     ],
     'qweb': [
         'static/src/xml/player.xml',

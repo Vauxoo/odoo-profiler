@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="profiler.profile.list">
+        <field name="name">profiler.profile</field>
+        <field name="model">profiler.profile</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="enable_postgresql"/>
+                <field name="enable_python"/>
+                <field name="date_started"/>
+                <field name="date_finished"/>
+            </form>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="profiler.profile.list">
+        <field name="name">profiler.profile</field>
+        <field name="model">profiler.profile</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="enable_postgresql"/>
+                <field name="enable_python"/>
+                <field name="date_started"/>
+                <field name="date_finished"/>
+            </tree>
+        </field>
+    </record>
+</odoo>
