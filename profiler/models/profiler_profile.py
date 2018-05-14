@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 from contextlib import contextmanager
 from cProfile import Profile
 
 from openerp import api, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class ProfilerProfile(models.Model):
@@ -26,19 +30,21 @@ class ProfilerProfile(models.Model):
 
     @api.multi
     def enable(self):
+        _logger.info("Enabling profiler")
         self.write(dict(
             date_started=fields.Datetime.now(),
             state='enabled'
         ))
-        self.enabled = True
+        ProfilerProfile.enabled = True
 
     @api.multi
     def disable(self):
+        _logger.info("Disabling profiler")
         self.write(dict(
             date_finished=fields.Datetime.now(),
             state='disabled'
         ))
-        self.enabled = False
+        ProfilerProfile.enabled = False
         self.profile.dump_stats("/tmp/borrar.stats")
         self.profile.clear()
 
@@ -48,6 +54,7 @@ class ProfilerProfile(models.Model):
         """Thread local profile management, according to the shared "enabled"
         """
         if ProfilerProfile.enabled:
+            _logger.debug("Catching profiling")
             ProfilerProfile.profile.enable()
         try:
             yield
