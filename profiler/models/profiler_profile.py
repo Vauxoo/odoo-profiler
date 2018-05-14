@@ -57,19 +57,14 @@ class ProfilerProfile(models.Model):
         pstats_stream = None
         return stats_string
 
-    @api.multi
-    def disable(self):
-        self.ensure_one()
-        _logger.info("Disabling profiler")
-        self.write(dict(
-            date_finished=fields.Datetime.now(),
-            state='disabled'
-        ))
+    @api.model
+    def dump_stats(self, started, finished):
+        attachment = None
         with tools.osutil.tempdir() as dump_dir:
             started = fields.Datetime.from_string(
-                    self.date_started).strftime(DATETIME_FORMAT_FILE)
+                started).strftime(DATETIME_FORMAT_FILE)
             finished = fields.Datetime.from_string(
-                    self.date_finished).strftime(DATETIME_FORMAT_FILE)
+                finished).strftime(DATETIME_FORMAT_FILE)
             cprofile_fname = 'stats_%d_%s_to_%s.cprofile' % (
                 self.id, started, finished)
             cprofile_path = os.path.join(dump_dir, cprofile_fname)
@@ -95,6 +90,17 @@ class ProfilerProfile(models.Model):
                 _logger.info("cProfile stats stored.")
             else:
                 _logger.info("cProfile stats empty.")
+        return attachment
+
+    @api.multi
+    def disable(self):
+        self.ensure_one()
+        _logger.info("Disabling profiler")
+        self.write(dict(
+            date_finished=fields.Datetime.now(),
+            state='disabled'
+        ))
+        self.dump_stats(self.date_started, self.date_finished)
         ProfilerProfile.profile.clear()
         ProfilerProfile.enabled = False
 
