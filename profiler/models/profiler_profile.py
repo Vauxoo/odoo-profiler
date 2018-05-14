@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from cStringIO import StringIO
+
 import base64
 import os
 import logging
+import pstats
 
 from contextlib import contextmanager
 from cProfile import Profile
@@ -46,6 +49,16 @@ class ProfilerProfile(models.Model):
         ))
         ProfilerProfile.enabled = True
 
+    def get_stats_string(self, cprofile_path):
+        pstats_stream = StringIO()
+        pstats_obj = pstats.Stats(cprofile_path, stream=pstats_stream)
+        pstats_obj.sort_stats('cumulative')
+        pstats_obj.print_stats()
+        pstats_stream.seek(0)
+        stats_string = pstats_stream.read()
+        pstats_stream = None
+        return stats_string
+
     @api.multi
     def disable(self):
         self.ensure_one()
@@ -63,11 +76,11 @@ class ProfilerProfile(models.Model):
                 self.id, started, finished)
             cprofile_path = os.path.join(dump_dir, cprofile_fname)
             _logger.info("Dumping cProfile '%s'", cprofile_path)
-            self.profile.dump_stats(cprofile_path)
+            ProfilerProfile.profile.dump_stats(cprofile_path)
             with open(cprofile_path, "rb") as f_cprofile:
                 datas = f_cprofile.read()
-            if datas != CPROFILE_EMPTY_CHARS:
-                self.env['ir.attachment'].create({
+            if datas and datas != CPROFILE_EMPTY_CHARS:
+                attachment = self.env['ir.attachment'].create({
                     'name': cprofile_fname,
                     'res_id': self.id,
                     'res_model': self._name,
@@ -75,6 +88,12 @@ class ProfilerProfile(models.Model):
                     'datas_fname': cprofile_fname,
                     'description': 'cProfile dump stats',
                 })
+                try:
+                    attachment.index_content = (
+                        self.get_stats_string(cprofile_path))
+                except:
+                    # It's a fancy feature but if it fail don't stop the process
+                    pass
                 _logger.info("cProfile stats stored.")
             else:
                 _logger.info("cProfile stats empty.")
