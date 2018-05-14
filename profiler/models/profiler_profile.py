@@ -81,12 +81,12 @@ class ProfilerProfile(models.Model):
                     'datas_fname': cprofile_fname,
                     'description': 'cProfile dump stats',
                 })
-                try:
-                    attachment.index_content = (
-                        self.get_stats_string(cprofile_path))
-                except:
-                    # It's a fancy feature but if it fail don't stop the process
-                    pass
+                # try:
+                #     attachment.index_content = (
+                #         self.get_stats_string(cprofile_path))
+                # except:
+                #     # Fancy feature but not stop process if fails
+                #     pass
                 _logger.info("cProfile stats stored.")
             else:
                 _logger.info("cProfile stats empty.")
