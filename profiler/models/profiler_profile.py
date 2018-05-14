@@ -49,7 +49,7 @@ class ProfilerProfile(models.Model):
             date_started=fields.Datetime.now(),
             state='enabled'
         ))
-        ProfilerProfile.enabled = True
+        ProfilerProfile.enabled = enable_python
 
     def get_stats_string(self, cprofile_path):
         pstats_stream = StringIO()
