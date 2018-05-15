@@ -32,9 +32,11 @@ class ProfilerProfile(models.Model):
     _name = 'profiler.profile'
 
     name = fields.Char()
-    enable_python = fields.Boolean(default=True)
+    enable_python = fields.Boolean(default=True,
+                                   states={'enabled': [('readonly', True)]})
     enable_postgresql = fields.Boolean(
         default=False,
+        states={'enabled': [('readonly', True)]},
         help="It requires postgresql server logs seudo-enabled")
     use_index = fields.Boolean(
         default=False,
@@ -114,22 +116,15 @@ log_temp_files=0
             state='enabled'
         ))
         ProfilerProfile.enabled = self.enable_python
-        if self.enable_postgresql:
-            self._enable_postgresql()
+        self._reset_postgresql()
 
     @api.multi
-    def _enable_postgresql(self):
-        if PGOPTIONS_PREDEFINED:
+    def _reset_postgresql(self):
+        if PGOPTIONS_PREDEFINED or not self.enable_postgresql:
             _logger.info("Using PGOPTIONS predefined.")
             return
+        pg_options = PGOPTIONS if self.state == 'enabled' else None
         os.environ['PGOPTIONS'] = PGOPTIONS
-        self._reset_connection()
-
-    def _disable_postgresql(self):
-        if PGOPTIONS_PREDEFINED:
-            # Avoid remove predefined
-            return
-        os.environ.pop("PGOPTIONS", None)
         self._reset_connection()
 
     def _reset_connection(self):
@@ -252,7 +247,7 @@ log_temp_files=0
         self.dump_stats(self.date_started, self.date_finished, self.use_index)
         self.clear(reset_date=False)
         ProfilerProfile.enabled = False
-        self._disable_postgresql()
+        self._reset_postgresql()
 
     @staticmethod
     @contextmanager
