@@ -21,7 +21,7 @@ PGOPTIONS = (
     '-c log_error_verbosity=verbose -c log_lock_waits=on '
     '-c log_statement=none -c log_temp_files=0 '
 )
-PGOPTIONS_PREFEDINED = os.environ.get('PGOPTIONS') and True or False
+PGOPTIONS_PREDEFINED = os.environ.get('PGOPTIONS') and True or False
 DFTL_LOG_PATH = os.environ.get('PG_LOG_PATH', 'postgresql.log')
 
 
@@ -119,15 +119,15 @@ log_temp_files=0
 
     @api.multi
     def _enable_postgresql(self):
-        if PGOPTIONS_PREFEDINED:
-            # The PGOPTIONS was enabled from terminal
+        if PGOPTIONS_PREDEFINED:
+            _logger.info("Using PGOPTIONS predefined.")
             return
         os.environ['PGOPTIONS'] = PGOPTIONS
         self._reset_connection()
 
     def _disable_postgresql(self):
-        if PGOPTIONS_PREFEDINED:
-            # The PGOPTIONS was enabled from terminal
+        if PGOPTIONS_PREDEFINED:
+            # Avoid remove predefined
             return
         os.environ.pop("PGOPTIONS", None)
         self._reset_connection()
