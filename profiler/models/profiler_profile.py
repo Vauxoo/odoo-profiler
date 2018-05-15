@@ -12,14 +12,21 @@ from openerp import api, exceptions, fields, models, sql_db, tools
 
 DATETIME_FORMAT_FILE = "%Y%m%d_%H%M%S"
 CPROFILE_EMPTY_CHARS = b"{0"
-PGOPTIONS = (
-    '-c client_min_messages=notice -c log_min_messages=warning '
-    '-c log_min_error_statement=error '
-    '-c log_min_duration_statement=0 -c log_connections=on '
-    '-c log_disconnections=on -c log_duration=off '
-    '-c log_error_verbosity=verbose -c log_lock_waits=on '
-    '-c log_statement=none -c log_temp_files=0 '
-)
+PGOPTIONS = {
+    'client_min_messages': 'notice',
+    'log_min_messages': 'warning',
+    'log_min_error_statement': 'error',
+    'log_min_duration_statement': '0',
+    'log_connections': 'on',
+    'log_disconnections': 'on',
+    'log_duration': 'off',
+    'log_error_verbosity': 'verbose',
+    'log_lock_waits': 'on',
+    'log_statement': 'none',
+    'log_temp_files': '0',
+}
+PGOPTIONS_ENV = ' '.join(["-c %s=%s" % (param, value)
+                          for param, value in PGOPTIONS.items()])
 PGOPTIONS_PREDEFINED = True if os.environ.get('PGOPTIONS') else False
 DFTL_LOG_PATH = os.environ.get('PG_LOG_PATH', 'postgresql.log')
 
@@ -132,7 +139,7 @@ log_temp_files=0
         if not self.enable_postgresql:
             return
         os.environ['PGOPTIONS'] = (
-            PGOPTIONS if self.state == 'enabled' else '')
+            PGOPTIONS_ENV if self.state == 'enabled' else '')
         self._reset_connection()
 
     def _reset_connection(self):
@@ -278,3 +285,19 @@ log_temp_files=0
         action = self.env.ref("base.action_attachment").read()[0]
         action['domain'] = [('id', 'in', attachments.ids)]
         return action
+
+    @api.model
+    def _setup_complete(self):
+        # Verify if postgresql has configured the parameters for logging
+        res = super(ProfilerProfile, self)._setup_complete()
+        if PGOPTIONS_PREDEFINED or not PGOPTIONS:
+            return res
+        for param, value in PGOPTIONS.items():
+            self.env.cr.execute("SHOW %s" % param)
+            db_value = self.env.cr.fetchone()[0].lower()
+            if value.lower() != db_value:
+                break
+        else:
+            global PGOPTIONS_PREDEFINED
+            PGOPTIONS_PREDEFINED = True
+        return res
