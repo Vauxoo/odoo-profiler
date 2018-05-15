@@ -21,6 +21,7 @@ PGOPTIONS = (
     '-c log_statement=none -c log_temp_files=0 '
 )
 PGOPTIONS_PREFEDINED = os.environ.get('PGOPTIONS') and True or False
+DFTL_LOG_PATH = os.environ.get('PG_LOG_PATH', 'postgresql.log')
 
 
 _logger = logging.getLogger(__name__)
@@ -44,7 +45,46 @@ class ProfilerProfile(models.Model):
         ('enabled', 'Enabled'),
         ('disabled', 'Disabled'),
     ], default='disabled', readonly=True)
-    # description = fields.Text(readonly=True)
+    description = fields.Text(readonly=True)
+
+    @api.onchange('enable_postgresql')
+    def onchange_enable_postgresql(self):
+        if not self.enable_postgresql:
+            return
+        self.description = (
+            "You need seudo-enable logs from your "
+            "postgresql-server configuration file.\n"
+            "Common paths:\n\t-/etc/postgresql/VERSION/main/postgresql.conf\n"
+            "or your can looking for the service using: 'ps aux | grep postgres'"
+        )
+        self.description += """Adds the following parameters:
+# Pre-enable logs
+logging_collector=on
+log_destination='stderr'
+log_directory='pg_log'
+log_filename='postgresql.log'
+log_rotation_age=0
+log_checkpoints=on
+log_hostname=on
+log_line_prefix='%t [%p]: [%l-1] db=%d,user=%u '
+
+Requires restart postgresql server service.
+
+NOTE: This module will enable the following parameter from the client:
+    It's not needed added them to configuration file.
+# Enable logs
+client_min_messages=notice
+log_min_messages=warning
+log_min_error_statement=error
+log_min_duration_statement=0
+log_connections=on
+log_disconnections=on
+log_duration=off
+log_error_verbosity=verbose
+log_lock_waits=on
+log_statement=none
+log_temp_files=0
+"""
 
     # TODO: Schedule a profiling in the future for a range of dates
     # TODO: One profile by each profiler.profile record
@@ -116,6 +156,36 @@ class ProfilerProfile(models.Model):
         pstats_stream = None
         return stats_string
 
+    @api.multi
+    def dump_postgresql_logs(self, indexed=None):
+        self.ensure_one()
+        # TODO: Run pgbadger command if It's running postgresql locally
+        started = fields.Datetime.from_string(
+            self.date_started).strftime(DATETIME_FORMAT_FILE)
+        finished = fields.Datetime.from_string(
+            self.date_finished).strftime(DATETIME_FORMAT_FILE)
+
+        fname = "postgresql_log_pgbadger_%d_%s_to_%s" % (
+            self.id, started, finished
+        )
+        pgbadger_bin = "pgbadger"
+        pgbadger_cmd = [
+            pgbadger_bin, '-f', 'stderr', '-T', fname,
+            '-o', fname + '.html', '-d', self.env.cr.dbname,
+            '-b', self.date_started,
+            '-e', self.date_finished, '--sample', '4',
+            '--quiet', DFTL_LOG_PATH]
+        pgbadger_cmd_s = pgbadger_bin + ' ' + ' '.join([
+            param if param.startswith('-') else '"%s"' % param
+            for param in pgbadger_cmd[1:]])
+        self.description = (
+        "Locate postgresql.log from your postgresql-server.\n"
+        "\nDefault paths:\n\t "
+        "- /var/lib/postgresql/VERSION/main/pg_log/postgresql.log\n\t"
+        "- /var/log/pg_log/postgresql.log\n\t"
+        "\nInstall 'apt-get install pgbadger'"
+        "\nRun the following command:\n%s") % pgbadger_cmd_s
+
     @api.model
     def dump_stats(self, started, finished, indexed=None):
         attachment = None
@@ -147,6 +217,7 @@ class ProfilerProfile(models.Model):
                 except:
                     # Fancy feature but not stop process if fails
                     pass
+                self.dump_postgresql_logs()
                 _logger.info("cProfile stats stored.")
             else:
                 _logger.info("cProfile stats empty.")
