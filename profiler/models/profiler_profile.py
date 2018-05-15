@@ -94,7 +94,7 @@ log_temp_files=0
     # TODO: multi-profiles
     enabled = False
 
-    @property
+    @api.model
     def now_utc(self):
         self.env.cr.execute("SELECT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')")
         now = self.env.cr.fetchall()[0][0]
@@ -110,7 +110,7 @@ log_temp_files=0
                 "Start the odoo server using the parameter '--workers=0'")
         _logger.info("Enabling profiler")
         self.write(dict(
-            date_started=self.now_utc,
+            date_started=self.now_utc(),
             state='enabled'
         ))
         ProfilerProfile.enabled = self.enable_python
@@ -240,7 +240,7 @@ log_temp_files=0
         self.ensure_one()
         _logger.info("Clear profiler")
         if reset_date:
-            self.date_started = self.now_utc 
+            self.date_started = self.now_utc()
         ProfilerProfile.profile.clear()
 
     @api.multi
@@ -248,7 +248,7 @@ log_temp_files=0
         self.ensure_one()
         _logger.info("Disabling profiler")
         self.state = 'disabled'
-        self.date_finished = self.now_utc
+        self.date_finished = self.now_utc()
         self.dump_stats(self.date_started, self.date_finished, self.use_index)
         self.clear(reset_date=False)
         ProfilerProfile.enabled = False
