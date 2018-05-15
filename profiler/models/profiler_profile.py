@@ -39,7 +39,7 @@ class ProfilerProfile(models.Model):
     # TODO: One profile by each profiler.profile record
     profile = Profile()
     # TODO: multi-profiles
-    # TODO: multi-processing workers
+    # TODO: multi-processing workers
     enabled = False
 
     @api.multi
@@ -102,14 +102,14 @@ class ProfilerProfile(models.Model):
     def clear(self):
         self.ensure_one()
         _logger.info("Clear profiler")
-        self.date_finished = fields.Datetime.now(),
+        self.date_finished = fields.Datetime.now()
         ProfilerProfile.profile.clear()
 
     @api.multi
     def disable(self):
         self.ensure_one()
         _logger.info("Disabling profiler")
-        self.state='disabled'
+        self.state = 'disabled'
         self.dump_stats(self.date_started, self.date_finished, self.use_index)
         self.clear()
         ProfilerProfile.enabled = False
