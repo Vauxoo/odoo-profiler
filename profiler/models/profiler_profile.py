@@ -39,7 +39,8 @@ class ProfilerProfile(models.Model):
     # TODO: One profile by each profiler.profile record
     profile = Profile()
     # TODO: multi-profiles
-    enabled = None
+    # TODO: multi-processing workers
+    enabled = False
 
     @api.multi
     def enable(self):
@@ -98,15 +99,19 @@ class ProfilerProfile(models.Model):
         return attachment
 
     @api.multi
+    def clear(self):
+        self.ensure_one()
+        _logger.info("Clear profiler")
+        self.date_finished = fields.Datetime.now(),
+        ProfilerProfile.profile.clear()
+
+    @api.multi
     def disable(self):
         self.ensure_one()
         _logger.info("Disabling profiler")
-        self.write(dict(
-            date_finished=fields.Datetime.now(),
-            state='disabled'
-        ))
+        self.state='disabled'
         self.dump_stats(self.date_started, self.date_finished, self.use_index)
-        ProfilerProfile.profile.clear()
+        self.clear()
         ProfilerProfile.enabled = False
 
     @staticmethod
@@ -122,3 +127,11 @@ class ProfilerProfile(models.Model):
         finally:
             if ProfilerProfile.enabled:
                 ProfilerProfile.profile.disable()
+
+    @api.multi
+    def action_view_attachment(self):
+        attachments = self.env['ir.attachment'].search([
+            ('res_model', '=', self._name), ('res_id', '=', self.id)])
+        action = self.env.ref("base.action_attachment").read()[0]
+        action['domain'] = [('id', 'in', attachments.ids)]
+        return action

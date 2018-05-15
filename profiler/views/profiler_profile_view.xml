@@ -23,7 +23,17 @@
                     groups="base.group_system" states="disabled"/>
                 <button name="disable" string="Disable" type="object"
                     groups="base.group_system" states="enabled"/>
+                <button name="clear" string="Clear" type="object"
+                    groups="base.group_system" states="enabled"/>
             </header>
+            <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_attachment"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-pencil-square-o">
+                        </button>
+                    </div>
             <group>
                 <group>
                     <field name="name"/>
@@ -35,6 +45,7 @@
                     <field name="state"/>
                 </group>
             </group>
+            </sheet>
         </form>
       </field>
     </record>
