@@ -97,8 +97,10 @@ log_temp_files=0
 
     @property
     def now_utc(self):
-        now = fields.Datetime.to_string(
-            fields.Datetime.context_timestamp(self, datetime.now()))
+        self.env.cr.execute("SELECT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')")
+        now = self.env.cr.fetchall()[0][0]
+        # now = fields.Datetime.to_string(
+        #     fields.Datetime.context_timestamp(self, datetime.now()))
         return now
 
     @api.multi
