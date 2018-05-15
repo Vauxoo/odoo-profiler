@@ -5,6 +5,7 @@ import logging
 import os
 import pstats
 from contextlib import contextmanager
+from datetime import datetime
 from cProfile import Profile
 from cStringIO import StringIO
 
@@ -94,12 +95,18 @@ log_temp_files=0
     # TODO: multi-processing workers
     enabled = False
 
+    @property
+    def now_utc(self):
+        now = fields.Datetime.to_string(
+            fields.Datetime.context_timestamp(self, datetime.now()))
+        return now
+
     @api.multi
     def enable(self):
         self.ensure_one()
         _logger.info("Enabling profiler")
         self.write(dict(
-            date_started=fields.Datetime.now(),
+            date_started=self.now_utc,
             state='enabled'
         ))
         ProfilerProfile.enabled = self.enable_python
@@ -229,7 +236,7 @@ log_temp_files=0
         self.ensure_one()
         _logger.info("Clear profiler")
         if reset_date:
-            self.date_started = fields.Datetime.now()
+            self.date_started = self.now_utc 
         ProfilerProfile.profile.clear()
 
     @api.multi
@@ -237,7 +244,7 @@ log_temp_files=0
         self.ensure_one()
         _logger.info("Disabling profiler")
         self.state = 'disabled'
-        self.date_finished = fields.Datetime.now()
+        self.date_finished = self.now_utc
         self.dump_stats(self.date_started, self.date_finished, self.use_index)
         self.clear(reset_date=False)
         ProfilerProfile.enabled = False
