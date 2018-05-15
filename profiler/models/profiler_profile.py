@@ -28,6 +28,9 @@ _logger = logging.getLogger(__name__)
 
 
 class ProfilerProfile(models.Model):
+    # TODO: Add constraint to avoid 2 or more enabled profiles
+    # TODO: Check if the database has enabled the logs paraemeter before to assign it
+    # TODO: Add a comment that the connection will be reset for the case of PGOPTIONS manually
     _name = 'profiler.profile'
 
     name = fields.Char()
@@ -96,10 +99,7 @@ log_statement=none
 log_temp_files=0
 """
 
-    # TODO: Schedule a profiling in the future for a range of dates
-    # TODO: One profile by each profiler.profile record
     profile = Profile()
-    # TODO: multi-profiles
     enabled = False
 
     @api.model
