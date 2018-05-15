@@ -9,7 +9,7 @@ from datetime import datetime
 from cProfile import Profile
 from cStringIO import StringIO
 
-from openerp import api, fields, models, sql_db, tools
+from openerp import api, exceptions, fields, models, sql_db, tools
 
 DATETIME_FORMAT_FILE = "%Y%m%d_%H%M%S"
 CPROFILE_EMPTY_CHARS = b"{0"
@@ -92,7 +92,6 @@ log_temp_files=0
     # TODO: One profile by each profiler.profile record
     profile = Profile()
     # TODO: multi-profiles
-    # TODO: multi-processing workers
     enabled = False
 
     @property
@@ -106,6 +105,9 @@ log_temp_files=0
     @api.multi
     def enable(self):
         self.ensure_one()
+        if tools.config.get('workers'):
+            raise exceptions.UserError(
+                "Start the odoo server using the parameter '--workers=0'")
         _logger.info("Enabling profiler")
         self.write(dict(
             date_started=self.now_utc,
