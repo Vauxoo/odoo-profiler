@@ -99,10 +99,10 @@ class ProfilerProfile(models.Model):
         return attachment
 
     @api.multi
-    def clear(self, no_reset_date=None):
+    def clear(self, reset_date=True):
         self.ensure_one()
         _logger.info("Clear profiler")
-        if not not_reset_date:
+        if reset_date:
             self.date_started = fields.Datetime.now()
         ProfilerProfile.profile.clear()
 
@@ -113,7 +113,7 @@ class ProfilerProfile(models.Model):
         self.state = 'disabled'
         self.date_finished = fields.Datetime.now()
         self.dump_stats(self.date_started, self.date_finished, self.use_index)
-        self.clear(no_reset_date=True)
+        self.clear(reset_date=False)
         ProfilerProfile.enabled = False
 
     @staticmethod
