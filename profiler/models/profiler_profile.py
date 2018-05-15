@@ -5,7 +5,6 @@ import logging
 import os
 import pstats
 from contextlib import contextmanager
-from datetime import datetime
 from cProfile import Profile
 from cStringIO import StringIO
 
@@ -21,7 +20,7 @@ PGOPTIONS = (
     '-c log_error_verbosity=verbose -c log_lock_waits=on '
     '-c log_statement=none -c log_temp_files=0 '
 )
-PGOPTIONS_PREDEFINED = os.environ.get('PGOPTIONS') and True or False
+PGOPTIONS_PREDEFINED = True if os.environ.get('PGOPTIONS') else False
 DFTL_LOG_PATH = os.environ.get('PG_LOG_PATH', 'postgresql.log')
 
 
@@ -56,7 +55,6 @@ class ProfilerProfile(models.Model):
         for record in self:
             self.attachment_count = self.env['ir.attachment'].search_count([
                 ('res_model', '=', self._name), ('res_id', '=', record.id)])
-            
 
     @api.onchange('enable_postgresql')
     def onchange_enable_postgresql(self):
@@ -134,7 +132,7 @@ log_temp_files=0
         if not self.enable_postgresql:
             return
         os.environ['PGOPTIONS'] = (
-            PGOPTIONS if self.state == 'enabled' else None)
+            PGOPTIONS if self.state == 'enabled' else '')
         self._reset_connection()
 
     def _reset_connection(self):
@@ -196,12 +194,12 @@ log_temp_files=0
             param if param.startswith('-') else '"%s"' % param
             for param in pgbadger_cmd[1:]])
         self.description = (
-        "Locate postgresql.log from your postgresql-server.\n"
-        "\nDefault paths:\n\t "
-        "- /var/lib/postgresql/VERSION/main/pg_log/postgresql.log\n\t"
-        "- /var/log/pg_log/postgresql.log\n\t"
-        "\nInstall 'apt-get install pgbadger'"
-        "\nRun the following command:\n%s") % pgbadger_cmd_s
+            "Locate postgresql.log from your postgresql-server.\n"
+            "\nDefault paths:\n\t "
+            "- /var/lib/postgresql/VERSION/main/pg_log/postgresql.log\n\t"
+            "- /var/log/pg_log/postgresql.log\n\t"
+            "\nInstall 'apt-get install pgbadger'"
+            "\nRun the following command:\n%s") % pgbadger_cmd_s
 
     @api.model
     def dump_stats(self, started, finished, indexed=None):
