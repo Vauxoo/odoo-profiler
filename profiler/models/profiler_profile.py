@@ -8,10 +8,20 @@ from contextlib import contextmanager
 from cProfile import Profile
 from cStringIO import StringIO
 
-from openerp import api, fields, models, tools
+from openerp import api, fields, models, sql_db, tools
 
 DATETIME_FORMAT_FILE = "%Y%m%d_%H%M%S"
 CPROFILE_EMPTY_CHARS = b"{0"
+PGOPTIONS = (
+    '-c client_min_messages=notice -c log_min_messages=warning '
+    '-c log_min_error_statement=error '
+    '-c log_min_duration_statement=0 -c log_connections=on '
+    '-c log_disconnections=on -c log_duration=off '
+    '-c log_error_verbosity=verbose -c log_lock_waits=on '
+    '-c log_statement=none -c log_temp_files=0 '
+)
+PGOPTIONS_PREFEDINED = os.environ.get('PGOPTIONS') and True or False
+
 
 _logger = logging.getLogger(__name__)
 
@@ -34,6 +44,7 @@ class ProfilerProfile(models.Model):
         ('enabled', 'Enabled'),
         ('disabled', 'Disabled'),
     ], default='disabled', readonly=True)
+    # description = fields.Text(readonly=True)
 
     # TODO: Schedule a profiling in the future for a range of dates
     # TODO: One profile by each profiler.profile record
@@ -51,6 +62,49 @@ class ProfilerProfile(models.Model):
             state='enabled'
         ))
         ProfilerProfile.enabled = self.enable_python
+        if self.enable_postgresql:
+            self._enable_postgresql()
+
+    @api.multi
+    def _enable_postgresql(self):
+        if PGOPTIONS_PREFEDINED:
+            # The PGOPTIONS was enabled from terminal
+            return
+        os.environ['PGOPTIONS'] = PGOPTIONS
+        self._reset_connection()
+
+    def _disable_postgresql(self):
+        if PGOPTIONS_PREFEDINED:
+            # The PGOPTIONS was enabled from terminal
+            return
+        os.environ.pop("PGOPTIONS", None)
+        self._reset_connection()
+
+    def _reset_connection(self):
+        """This method cleans (rollback) all current transactions over actual
+        cursor in order to avoid errors with waiting transactions.
+            - request.cr.rollback()
+        Also connections on current database's only are closed by the next
+        statement
+            - dsn = odoo.sql_db.connection_info_for(request.cr.dbname)
+            - odoo.sql_db._Pool.close_all(dsn[1])
+        Otherwise next error will be trigger
+        'InterfaceError: connection already closed'
+        Finally new cursor is assigned to the request object, this cursor will
+        take the os.environ setted. In this case the os.environ is setted with
+        all 'PGOPTIONS' required to log all sql transactions in postgres.log
+        file.
+        If this method is called one more time, it will create a new cursor and
+        take the os.environ again, this is usefully if we want to reset
+        'PGOPTIONS'
+        """
+        cr = self.env.cr
+        dbname = cr.dbname
+        cr.commit()
+        dsn = sql_db.connection_info_for(dbname)
+        sql_db._Pool.close_all(dsn[1])
+        db = sql_db.db_connect(dbname)
+        self.env.cr = db.cursor()
 
     def get_stats_string(self, cprofile_path):
         pstats_stream = StringIO()
@@ -115,6 +169,7 @@ class ProfilerProfile(models.Model):
         self.dump_stats(self.date_started, self.date_finished, self.use_index)
         self.clear(reset_date=False)
         ProfilerProfile.enabled = False
+        self._disable_postgresql()
 
     @staticmethod
     @contextmanager
