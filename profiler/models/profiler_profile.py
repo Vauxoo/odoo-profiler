@@ -49,6 +49,14 @@ class ProfilerProfile(models.Model):
         ('disabled', 'Disabled'),
     ], default='disabled', readonly=True)
     description = fields.Text(readonly=True)
+    attachment_count = fields.Integer(compute="_compute_attachment_count")
+
+    @api.multi
+    def _compute_attachment_count(self):
+        for record in self:
+            self.attachment_count = self.env['ir.attachment'].search_count([
+                ('res_model', '=', self._name), ('res_id', '=', record.id)])
+            
 
     @api.onchange('enable_postgresql')
     def onchange_enable_postgresql(self):
@@ -120,11 +128,13 @@ log_temp_files=0
 
     @api.multi
     def _reset_postgresql(self):
-        if PGOPTIONS_PREDEFINED or not self.enable_postgresql:
+        if PGOPTIONS_PREDEFINED:
             _logger.info("Using PGOPTIONS predefined.")
             return
-        pg_options = PGOPTIONS if self.state == 'enabled' else None
-        os.environ['PGOPTIONS'] = PGOPTIONS
+        if not self.enable_postgresql:
+            return
+        os.environ['PGOPTIONS'] = (
+            PGOPTIONS if self.state == 'enabled' else None)
         self._reset_connection()
 
     def _reset_connection(self):
