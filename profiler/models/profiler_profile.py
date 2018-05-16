@@ -17,8 +17,6 @@ PGOPTIONS = {
     'client_min_messages': 'notice',
     'log_min_messages': 'warning',
     'log_min_error_statement': 'error',
-    'log_connections': 'on',
-    'log_disconnections': 'on',
     'log_duration': 'off',
     'log_error_verbosity': 'verbose',
     'log_lock_waits': 'on',
@@ -82,6 +80,8 @@ log_rotation_age=0
 log_checkpoints=on
 log_hostname=on
 log_line_prefix='%t [%p]: [%l-1] db=%d,user=%u '
+log_connections=on
+log_disconnections=on
 
 Reload configuration using the following query:
  - select pg_reload_conf()
@@ -97,8 +97,6 @@ log_min_duration_statement=0
 client_min_messages=notice
 log_min_messages=warning
 log_min_error_statement=error
-log_connections=on
-log_disconnections=on
 log_duration=off
 log_error_verbosity=verbose
 log_lock_waits=on
@@ -116,6 +114,9 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
 
     # True to activate it False to inactivate None to do nothing
     activate_deactivate_pglogs = None
+
+    # Params dict with values before to change it.
+    psql_params_original = {}
 
     @api.model
     def now_utc(self):
@@ -153,9 +154,11 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
     def _reset_connection(self, enable):
         for connection in sql_db._Pool._connections:
             with connection[0].cursor() as pool_cr:
-                pool_cr.execute('SET log_min_duration_statement TO "%s"' % (
-                    (not enable) * -1))
-        ProfilerProfile.activate_deactivate_pglogs = enable
+                params = (PGOPTIONS if enable
+                          else ProfilerProfile.psql_params_original)
+                for param, value in params.items():
+                    pool_cr.execute('SET %s TO %s' % (param, value))
+            ProfilerProfile.activate_deactivate_pglogs = enable
 
     def get_stats_string(self, cprofile_path):
         pstats_stream = StringIO()
@@ -293,9 +296,18 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
             if value.lower() != db_value:
                 ProfilerProfile.pglogs_enabled = False
                 break
+        ProfilerProfile.psql_params_original = self.get_psql_params(
+            self.env.cr, PGOPTIONS.keys())
         _logger.info('Logging enabled from postgresql.conf? %s',
                      ProfilerProfile.pglogs_enabled)
-        return
+
+    @staticmethod
+    def get_psql_params(cr, params):
+        result = {}
+        for param in set(params):
+            cr.execute('SHOW %s' % param)
+            result.update(cr.dictfetchone())
+        return result
 
     @api.model
     def _setup_complete(self):
