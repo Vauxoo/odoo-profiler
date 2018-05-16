@@ -85,7 +85,9 @@ log_checkpoints=on
 log_hostname=on
 log_line_prefix='%t [%p]: [%l-1] db=%d,user=%u '
 
-Requires restart postgresql server service.
+Reload configuration using the following query:
+ - select pg_reload_conf()
+Or restart the postgresql server service.
 
 NOTE: This module will enable the following parameter from the client:
     It's not needed added them to configuration file.
