@@ -35,8 +35,6 @@ _logger = logging.getLogger(__name__)
 
 class ProfilerProfile(models.Model):
     # TODO: Add constraint to avoid 2 or more enabled profiles
-    # TODO: Check if the database has enabled the logs paraemeter before to assign it
-    # TODO: Add a comment that the connection will be reset for the case of PGOPTIONS manually
     _name = 'profiler.profile'
 
     name = fields.Char()
@@ -89,13 +87,17 @@ Reload configuration using the following query:
  - select pg_reload_conf()
 Or restart the postgresql server service.
 
-NOTE: This module will enable the following parameter from the client:
-    It's not needed added them to configuration file.
-# Enable logs
+FYI This module will enable the following parameter from the client
+    (but reset all connection)
+    It's not needed added them to configuration file
+    (but if you can avoid reset all connections you can add them
+     or use PGOPTIONS environment variable in the terminal that you start
+     your odoo server)
+# Enable logs from postgresql.conf
+log_min_duration_statement=0
 client_min_messages=notice
 log_min_messages=warning
 log_min_error_statement=error
-log_min_duration_statement=0
 log_connections=on
 log_disconnections=on
 log_duration=off
@@ -103,6 +105,10 @@ log_error_verbosity=verbose
 log_lock_waits=on
 log_statement=none
 log_temp_files=0
+
+#  Or enable logs from PGOPTIONS environment variable before to start odoo server
+export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice -c log_min_messages=warning -c log_min_error_statement=error -c log_connections=on -c log_disconnections=on -c log_duration=off -c log_error_verbosity=verbose -c log_lock_waits=on -c log_statement=none -c log_temp_files=0"
+~/odoo_path/odoo-bin ...
 """
 
     profile = Profile()
