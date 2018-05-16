@@ -164,7 +164,9 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
                     except (OperationalError, ProgrammingError) as oe:
                         pool_cr.connection.rollback()
                         raise exceptions.UserError(
-                            "It's not possible change parameter.\n%s" % str(oe))
+                                "It's not possible change parameter.\n%s\n"
+                                "Please, disable postgresql or re-enable it "
+                                "in order to read the instructions" % str(oe))
             ProfilerProfile.activate_deactivate_pglogs = enable
 
     def get_stats_string(self, cprofile_path):
