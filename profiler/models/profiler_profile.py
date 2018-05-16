@@ -151,11 +151,11 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
         self._reset_connection(self.state == 'enabled')
 
     def _reset_connection(self, enable):
-        ProfilerProfile.activate_deactivate_pglogs = enable
         for connection in sql_db._Pool._connections:
             with connection[0].cursor() as pool_cr:
                 pool_cr.execute('SET log_min_duration_statement TO "%s"' % (
                     (not enable) * -1))
+        ProfilerProfile.activate_deactivate_pglogs = enable
 
     def get_stats_string(self, cprofile_path):
         pstats_stream = StringIO()
