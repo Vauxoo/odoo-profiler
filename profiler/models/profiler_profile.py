@@ -8,6 +8,8 @@ from contextlib import contextmanager
 from cProfile import Profile
 from cStringIO import StringIO
 
+from psycopg2 import OperationalError, ProgrammingError
+
 from openerp import api, exceptions, fields, models, sql_db, tools
 
 DATETIME_FORMAT_FILE = "%Y%m%d_%H%M%S"
@@ -157,7 +159,12 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
                 params = (PGOPTIONS if enable
                           else ProfilerProfile.psql_params_original)
                 for param, value in params.items():
-                    pool_cr.execute('SET %s TO %s' % (param, value))
+                    try:
+                        pool_cr.execute('SET %s TO %s' % (param, value))
+                    except (OperationalError, ProgrammingError) as oe:
+                        pool_cr.connection.rollback()
+                        raise exceptions.UserError(
+                            "It's not possible change parameter.\n%s" % str(oe))
             ProfilerProfile.activate_deactivate_pglogs = enable
 
     def get_stats_string(self, cprofile_path):
