@@ -3,13 +3,14 @@
 import logging
 
 from openerp.http import WebRequest
+from openerp.sql_db import Cursor
 
 from .models.profiler_profile import ProfilerProfile
 
 _logger = logging.getLogger(__name__)
 
 
-def patch_odoo():
+def patch_web_request_call_function():
     """Modify Odoo entry points so that profile can record.
 
     Odoo is a multi-threaded program. Therefore, the :data:`profile` object
@@ -18,7 +19,7 @@ def patch_odoo():
 
     For instance, Odoo spawns a new thread for each request.
     """
-    _logger.info('Patching openerp.http.WebRequest._call_function')
+    _logger.info('Patching http.WebRequest._call_function')
     webreq_f_origin = WebRequest._call_function
 
     def webreq_f(*args, **kwargs):
@@ -27,5 +28,19 @@ def patch_odoo():
     WebRequest._call_function = webreq_f
 
 
+def patch_cursor_init():
+    _logger.info('Patching sql_dp.Cursor.__init__')
+    cursor_f_origin = Cursor.__init__
+
+    def init_f(self, *args, **kwargs):
+        cursor_f_origin(self, *args, **kwargs)
+        enable = ProfilerProfile.activate_deactivate_pglogs
+        if enable is not None:
+            self._obj.execute('SET log_min_duration_statement TO "%s"' %
+                              ((not enable) * -1,))
+    Cursor.__init__ = init_f
+
+
 def post_load():
-    patch_odoo()
+    patch_web_request_call_function()
+    patch_cursor_init()

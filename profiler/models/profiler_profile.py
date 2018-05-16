@@ -88,11 +88,10 @@ Reload configuration using the following query:
 Or restart the postgresql server service.
 
 FYI This module will enable the following parameter from the client
-    (but reset all connection)
-    It's not needed added them to configuration file
-    (but if you can avoid reset all connections you can add them
+    It's not needed added them to configuration file if database user is superuser
      or use PGOPTIONS environment variable in the terminal that you start
-     your odoo server)
+     your odoo server.
+    If you don't add these parameters or PGOPTIONS this module will try do it.
 # Enable logs from postgresql.conf
 log_min_duration_statement=0
 client_min_messages=notice
@@ -114,6 +113,9 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
     profile = Profile()
     enabled = None
     pglogs_enabled = None
+
+    # True to activate it False to inactivate None to do nothing
+    activate_deactivate_pglogs = None
 
     @api.model
     def now_utc(self):
@@ -146,31 +148,16 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
             return
         os.environ['PGOPTIONS'] = (
             PGOPTIONS_ENV if self.state == 'enabled' else '')
-        self._reset_connection()
+        self._reset_connection(self.state == 'enabled')
 
-    def _reset_connection(self):
-        """This method cleans (rollback) all current transactions over actual
-        cursor in order to avoid errors with waiting transactions.
-            - request.cr.rollback()
-        Also connections on current database's only are closed by the next
-        statement
-            - dsn = odoo.sql_db.connection_info_for(request.cr.dbname)
-            - odoo.sql_db._Pool.close_all(dsn[1])
-        Otherwise next error will be trigger
-        'InterfaceError: connection already closed'
-        Finally new cursor is assigned to the request object, this cursor will
-        take the os.environ setted. In this case the os.environ is setted with
-        all 'PGOPTIONS' required to log all sql transactions in postgres.log
-        file.
-        If this method is called one more time, it will create a new cursor and
-        take the os.environ again, this is usefully if we want to reset
-        'PGOPTIONS'
-        """
-        cr = self.env.cr
-        dbname = cr.dbname
-        cr.commit()
-        dsn = sql_db.connection_info_for(dbname)
-        sql_db._Pool.close_all(dsn[1])
+    def _reset_connection(self, enable):
+        ProfilerProfile.activate_deactivate_pglogs = enable
+        for connection in sql_db._Pool._connections:
+            with connection[0].cursor() as pool_cr:
+                pool_cr.execute('SET log_min_duration_statement TO "%s"' % (
+                    (not enable) * -1))
+                pool_cr.connection.commit()
+
 
     def get_stats_string(self, cprofile_path):
         pstats_stream = StringIO()
