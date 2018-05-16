@@ -163,8 +163,6 @@ log_temp_files=0
         cr.commit()
         dsn = sql_db.connection_info_for(dbname)
         sql_db._Pool.close_all(dsn[1])
-        db = sql_db.db_connect(dbname)
-        self.env.cr = db.cursor()
 
     def get_stats_string(self, cprofile_path):
         pstats_stream = StringIO()
