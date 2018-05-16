@@ -156,8 +156,6 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
             with connection[0].cursor() as pool_cr:
                 pool_cr.execute('SET log_min_duration_statement TO "%s"' % (
                     (not enable) * -1))
-                pool_cr.connection.commit()
-
 
     def get_stats_string(self, cprofile_path):
         pstats_stream = StringIO()
