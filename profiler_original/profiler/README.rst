@@ -9,6 +9,15 @@ Odoo Profiler
 This module is an integration of cprofile for Odoo.
 Check the Profiler menu in admin menu
 
+Configuration
+=============
+By default profiler module adds two system parameters
+    - exclude_fnames > '/.repo_requirements,~/odoo-9.0,/usr/,>'
+    - exclude_query > 'ir_translation'.
+
+These parameters can be configurated in order to exclude some outputs from
+profiling stats or pgbadger output.
+
 Credits
 =======
 
@@ -16,6 +25,7 @@ Contributors
 ------------
 
 * Moisés López <moylop260@vauxoo.com>
+* Hugo Adan <hugo@vauxoo.com>
 
 Maintainer
 ----------
