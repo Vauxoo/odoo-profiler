@@ -14,9 +14,10 @@ from pstats_print2list import get_pstats_print2list, print_pstats_list
 
 from openerp.tools.misc import find_in_path
 from openerp import http, tools, sql_db
+from openerp.http import WebRequest
 from openerp.http import request
 
-from openerp.addons.profiler.hooks import CoreProfile as core
+from openerp.addons.profiler.hooks import CoreProfile
 from openerp.service.db import dump_db_manifest
 
 
@@ -32,6 +33,19 @@ PGOPTIONS = (
     '-c log_statement=none -c log_temp_files=0 '
 )
 
+
+# class WebRequestProfiler(http.WebRequest):
+#     def __init__(self, *args, **kwargs):
+#         import pdb;pdb.set_trace()
+#         super(WebRequestProfiler, self).__init__(*args, **kwargs)
+
+#     def _call_function(self, *args, **kwargs):
+#         _logger.info('Patching openerp.http.WebRequest._call_function')
+#         import pdb;pdb.set_trace()
+#         with CoreProfile.profiling():
+#             return super(WebRequestProfiler, self)._call_function(*args, **kwargs)
+
+# http.WebRequest = WebRequestProfiler
 
 class Capturing(list):
     def __enter__(self):
@@ -62,26 +76,26 @@ class ProfilerController(http.Controller):
     @http.route(['/web/profiler/enable'], type='json', auth="user")
     def enable(self):
         _logger.info("Enabling")
-        core.enabled = True
+        CoreProfile.enabled = True
         ProfilerController.begin_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_enabled'
-        os.environ['PGOPTIONS'] = PGOPTIONS
-        self.empty_cursor_pool()
+        # os.environ['PGOPTIONS'] = PGOPTIONS
+        # self.empty_cursor_pool()
 
     @http.route(['/web/profiler/disable'], type='json', auth="user")
     def disable(self, **post):
         _logger.info("Disabling")
-        core.enabled = False
+        CoreProfile.enabled = False
         ProfilerController.end_date = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S")
         ProfilerController.player_state = 'profiler_player_disabled'
-        os.environ.pop("PGOPTIONS", None)
-        self.empty_cursor_pool()
+        # os.environ.pop("PGOPTIONS", None)
+        # self.empty_cursor_pool()
 
     @http.route(['/web/profiler/clear'], type='json', auth="user")
     def clear(self, **post):
-        core.profile.clear()
+        CoreProfile.profile.clear()
         _logger.info("Cleared stats")
         ProfilerController.player_state = 'profiler_player_clear'
         ProfilerController.end_date = ''
@@ -99,7 +113,7 @@ class ProfilerController(http.Controller):
             ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             filename = 'openerp_%s' % ts
             stats_path = os.path.join(dump_dir, '%s.stats' % filename)
-            core.profile.dump_stats(stats_path)
+            CoreProfile.profile.dump_stats(stats_path)
             _logger.info("Pstats Command:")
             params = {'fnames': stats_path, 'limit': 45,
                       'exclude_fnames': exclude_fname}

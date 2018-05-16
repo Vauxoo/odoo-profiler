@@ -1,26 +1,15 @@
-# coding: utf-8
-# License AGPL-3 or later (http://www.gnu.org/licenses/lgpl).
-# Copyright 2014 Anybox <http://anybox.fr>
-# Copyright 2016 Vauxoo (https://www.vauxoo.com) <info@vauxoo.com>
-
+# -*- coding: utf-8 -*-
 {
-    'name': 'profiler',
-    'version': '9.0.1.0.0',
+    'name': "profiler",
+    'author': "Vauxoo",
+    'website': "http://www.vauxoo.com",
     'category': 'devtools',
-    'license': 'AGPL-3',
-    'author': 'Georges Racinet, Vauxoo',
-    'website': 'http://anybox.fr, http://vauxoo.com',
-    'depends': ['website'],
+    'version': '9.0.1.0.0',
+    'depends': ["document"],
     'data': [
-        'data/profiler_excluding.xml',
-        'security/group.xml',
-        'views/profiler.xml'
+        'security/ir.model.access.csv',
+        'views/profiler_profile_view.xml',
     ],
-    'qweb': [
-        'static/src/xml/player.xml',
-    ],
-    'installable': True,
-    'application': False,
-    'auto_install': False,
     'post_load': 'post_load',
+    'installable': True,
 }
