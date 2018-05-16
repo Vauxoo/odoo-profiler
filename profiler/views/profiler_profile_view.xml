@@ -39,8 +39,8 @@
             <group>
                 <group>
                     <field name="name"/>
-                    <field name="enable_python"/>
-                    <field name="enable_postgresql"/>
+                    <field name="enable_python" attrs="{'readonly': [('state','=', 'enabled')]}"/>
+                    <field name="enable_postgresql" attrs="{'readonly': [('state','=', 'enabled')]}"/>
                     <field name="use_index"/>
                     <field name="date_started"/>
                     <field name="date_finished"/>

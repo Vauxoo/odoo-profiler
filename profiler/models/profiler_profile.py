@@ -13,10 +13,10 @@ from openerp import api, exceptions, fields, models, sql_db, tools
 DATETIME_FORMAT_FILE = "%Y%m%d_%H%M%S"
 CPROFILE_EMPTY_CHARS = b"{0"
 PGOPTIONS = {
+    'log_min_duration_statement': '0',
     'client_min_messages': 'notice',
     'log_min_messages': 'warning',
     'log_min_error_statement': 'error',
-    'log_min_duration_statement': '0',
     'log_connections': 'on',
     'log_disconnections': 'on',
     'log_duration': 'off',
@@ -27,7 +27,6 @@ PGOPTIONS = {
 }
 PGOPTIONS_ENV = ' '.join(["-c %s=%s" % (param, value)
                           for param, value in PGOPTIONS.items()])
-PGOPTIONS_PREDEFINED = True if os.environ.get('PGOPTIONS') else False
 DFTL_LOG_PATH = os.environ.get('PG_LOG_PATH', 'postgresql.log')
 
 
@@ -41,11 +40,9 @@ class ProfilerProfile(models.Model):
     _name = 'profiler.profile'
 
     name = fields.Char()
-    enable_python = fields.Boolean(default=True,
-                                   states={'enabled': [('readonly', True)]})
+    enable_python = fields.Boolean(default=True)
     enable_postgresql = fields.Boolean(
         default=False,
-        states={'enabled': [('readonly', True)]},
         help="It requires postgresql server logs seudo-enabled")
     use_index = fields.Boolean(
         default=False,
@@ -56,7 +53,7 @@ class ProfilerProfile(models.Model):
     state = fields.Selection([
         ('enabled', 'Enabled'),
         ('disabled', 'Disabled'),
-    ], default='disabled', readonly=True)
+    ], default='disabled', readonly=True, required=True)
     description = fields.Text(readonly=True)
     attachment_count = fields.Integer(compute="_compute_attachment_count")
 
@@ -107,7 +104,8 @@ log_temp_files=0
 """
 
     profile = Profile()
-    enabled = False
+    enabled = None
+    pglogs_enabled = None
 
     @api.model
     def now_utc(self):
@@ -133,10 +131,10 @@ log_temp_files=0
 
     @api.multi
     def _reset_postgresql(self):
-        if PGOPTIONS_PREDEFINED:
-            _logger.info("Using PGOPTIONS predefined.")
-            return
         if not self.enable_postgresql:
+            return
+        if ProfilerProfile.pglogs_enabled:
+            _logger.info("Using postgresql.conf or PGOPTIONS predefined.")
             return
         os.environ['PGOPTIONS'] = (
             PGOPTIONS_ENV if self.state == 'enabled' else '')
@@ -287,17 +285,28 @@ log_temp_files=0
         return action
 
     @api.model
-    def _setup_complete(self):
-        # Verify if postgresql has configured the parameters for logging
-        res = super(ProfilerProfile, self)._setup_complete()
-        if PGOPTIONS_PREDEFINED or not PGOPTIONS:
-            return res
-        for param, value in PGOPTIONS.items():
+    def set_pgoptions_enabled(self):
+        """Verify if postgresql has configured the parameters for logging"""
+        ProfilerProfile.pglogs_enabled = True
+        pgoptions_enabled = bool(os.environ.get('PGOPTIONS'))
+        _logger.info('Logging enabled from environment '
+                     'variable PGOPTIONS? %s', pgoptions_enabled)
+        if pgoptions_enabled:
+            return
+        pgparams_required = {
+            'log_min_duration_statement': '0',
+        }
+        for param, value in pgparams_required.items():
             self.env.cr.execute("SHOW %s" % param)
             db_value = self.env.cr.fetchone()[0].lower()
             if value.lower() != db_value:
+                ProfilerProfile.pglogs_enabled = False
                 break
-        else:
-            global PGOPTIONS_PREDEFINED
-            PGOPTIONS_PREDEFINED = True
-        return res
+        _logger.info('Logging enabled from postgresql.conf? %s',
+                     ProfilerProfile.pglogs_enabled)
+        return
+
+    @api.model
+    def _setup_complete(self):
+        self.set_pgoptions_enabled()
+        return super(ProfilerProfile, self)._setup_complete()
