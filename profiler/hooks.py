@@ -23,7 +23,7 @@ def patch_web_request_call_function():
     webreq_f_origin = WebRequest._call_function
 
     def webreq_f(*args, **kwargs):
-        with ProfilerProfile.profiling():
+        with ProfilerProfile._profiling():
             return webreq_f_origin(*args, **kwargs)
     WebRequest._call_function = webreq_f
 
