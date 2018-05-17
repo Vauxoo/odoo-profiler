@@ -19,11 +19,11 @@
       <field name="arch" type="xml">
         <form>
             <header>
-                <button name="enable" string="Enable" type="object"
+                <button name="_enable" string="Enable" type="object"
                     groups="base.group_system" states="disabled"/>
-                <button name="disable" string="Disable" type="object"
+                <button name="_disable" string="Disable" type="object"
                     groups="base.group_system" states="enabled"/>
-                <button name="clear" string="Clear" type="object"
+                <button name="_clear" string="Clear" type="object"
                     groups="base.group_system" states="enabled"/>
             </header>
             <sheet>

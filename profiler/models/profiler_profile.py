@@ -110,7 +110,7 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
 ~/odoo_path/odoo-bin ...
 """
 
-    profile = Profile()
+    _profile = Profile()
     enabled = None
     pglogs_enabled = None
 
@@ -129,7 +129,7 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
         return now
 
     @api.multi
-    def enable(self):
+    def _enable(self):
         self.ensure_one()
         if tools.config.get('workers'):
             raise exceptions.UserError(
@@ -210,7 +210,7 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
             "\nRun the following command:\n%s") % pgbadger_cmd_s
 
     @api.model
-    def dump_stats(self, started, finished, indexed=None):
+    def _dump_stats(self, started, finished, indexed=None):
         attachment = None
         with tools.osutil.tempdir() as dump_dir:
             started = fields.Datetime.from_string(
@@ -221,7 +221,7 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
                 self.id, started, finished)
             cprofile_path = os.path.join(dump_dir, cprofile_fname)
             _logger.info("Dumping cProfile '%s'", cprofile_path)
-            ProfilerProfile.profile.dump_stats(cprofile_path)
+            ProfilerProfile._profile.dump_stats(cprofile_path)
             with open(cprofile_path, "rb") as f_cprofile:
                 datas = f_cprofile.read()
             if datas and datas != CPROFILE_EMPTY_CHARS:
@@ -247,37 +247,37 @@ export PGOPTIONS="-c log_min_duration_statement=0 -c client_min_messages=notice 
         return attachment
 
     @api.multi
-    def clear(self, reset_date=True):
+    def _clear(self, reset_date=True):
         self.ensure_one()
         _logger.info("Clear profiler")
         if reset_date:
             self.date_started = self.now_utc()
-        ProfilerProfile.profile.clear()
+        ProfilerProfile._profile._clear()
 
     @api.multi
-    def disable(self):
+    def _disable(self):
         self.ensure_one()
         _logger.info("Disabling profiler")
         self.state = 'disabled'
         self.date_finished = self.now_utc()
         self.dump_stats(self.date_started, self.date_finished, self.use_index)
-        self.clear(reset_date=False)
+        self._clear(reset_date=False)
         ProfilerProfile.enabled = False
         self._reset_postgresql()
 
     @staticmethod
     @contextmanager
-    def profiling():
+    def _profiling():
         """Thread local profile management, according to the shared "enabled"
         """
         if ProfilerProfile.enabled:
             _logger.debug("Catching profiling")
-            ProfilerProfile.profile.enable()
+            ProfilerProfile._profile.enable()
         try:
             yield
         finally:
             if ProfilerProfile.enabled:
-                ProfilerProfile.profile.disable()
+                ProfilerProfile._profile._disable()
 
     @api.multi
     def action_view_attachment(self):
